@@ -65,27 +65,31 @@ struct ContentView: View {
             Alert(title: Text("Success"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
+            ToolbarItem(placement: .principal) {
                 Button(action: selectOutputDirectory) {
-                    Label("Select Output Directory", systemImage: "folder")
+                    Label("Select Output Directory", systemImage: "folder.badge.plus")
                 }
+                .help("Select Output Directory")
             }
-            ToolbarItem(placement: .primaryAction) {
+            ToolbarItem(placement: .principal) {
                 Button(action: generateIcons) {
-                    Label("Generate Icons", systemImage: "square.grid.2x2")
+                    Label("Generate Icons", systemImage: "gearshape.fill")
                 }
+                .help("Generate Icons")
                 .disabled(image == nil || outputDirectory == nil)
             }
-            ToolbarItem(placement: .primaryAction) {
+            ToolbarItem(placement: .principal) {
                 Button(action: generateICNS) {
-                    Label("Generate ICNS", systemImage: "doc.append")
+                    Label("Generate ICNS", systemImage: "doc.badge.gearshape")
                 }
+                .help("Generate ICNS")
                 .disabled(!iconsGenerated)
             }
-            ToolbarItem(placement: .primaryAction) {
+            ToolbarItem(placement: .principal) {
                 Button(action: clearImage) {
-                    Label("Clear Image", systemImage: "xmark.circle")
+                    Label("Clear Image", systemImage: "trash")
                 }
+                .help("Clear Image")
             }
         }
     }

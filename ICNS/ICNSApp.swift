@@ -15,5 +15,6 @@ struct ICNSApp: App {
                 .frame(minWidth: 350, maxWidth: .infinity, minHeight: 350, maxHeight: .infinity)
         }
         .defaultSize(width: 410, height: 450)
+        .windowStyle(HiddenTitleBarWindowStyle())
     }
 }
