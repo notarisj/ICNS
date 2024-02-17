@@ -17,7 +17,7 @@ struct ContentView: View {
     @State private var iconsGenerated = false
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 10) {
             ZStack {
                 if let img = image {
                     Image(nsImage: img)
@@ -51,6 +51,7 @@ struct ContentView: View {
                     }
                 }
             }
+            Spacer().frame(height: 15)
             TextField("Icon Name", text: $iconName)
                 .padding(.horizontal)
             Text("Output Directory: \(formatDirectory(url: outputDirectory))")
@@ -59,7 +60,7 @@ struct ContentView: View {
                 .truncationMode(.middle)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(20)
+        .padding(25)
         .alert(isPresented: $showAlert) {
             Alert(title: Text("Success"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }

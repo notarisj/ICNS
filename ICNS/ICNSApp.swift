@@ -12,7 +12,7 @@ struct ICNSApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .frame(minWidth: 410, maxWidth: .infinity, minHeight: 450, maxHeight: .infinity)
+                .frame(minWidth: 350, maxWidth: .infinity, minHeight: 350, maxHeight: .infinity)
         }
         .defaultSize(width: 410, height: 450)
     }
