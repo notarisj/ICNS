@@ -12,4 +12,4 @@ A macOS app for creating `.iconset` and `.icns` files from images.
 2. Select an image and output directory.
 3. Generate icons and `.icns` file.
 
-Licensed under [MIT](https://choosealicense.com/licenses/mit/).
+Licensed under [MIT](LICENSE).
