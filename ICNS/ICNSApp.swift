@@ -14,7 +14,7 @@ struct ICNSApp: App {
             ContentView()
                 .frame(minWidth: 350, maxWidth: .infinity, minHeight: 350, maxHeight: .infinity)
         }
-        .defaultSize(width: 410, height: 450)
+        .defaultSize(width: 350, height: 350)
         .windowStyle(HiddenTitleBarWindowStyle())
     }
 }
