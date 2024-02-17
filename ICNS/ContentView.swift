@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var iconName: String = "icon"
     @State private var showAlert = false
     @State private var alertMessage = ""
+    @State private var alertTitle = "Success"
     @State private var iconsGenerated = false
     
     var body: some View {
@@ -62,7 +63,7 @@ struct ContentView: View {
         }
         .padding(25)
         .alert(isPresented: $showAlert) {
-            Alert(title: Text("Success"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+            Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
         .toolbar {
             ToolbarItem(placement: .principal) {
@@ -151,7 +152,10 @@ struct ContentView: View {
         do {
             try FileManager.default.createDirectory(at: iconsetFolder, withIntermediateDirectories: true, attributes: nil)
         } catch {
-            print("Error creating .iconset folder: \(error)")
+            // Display error alert
+            self.alertMessage = "Error creating .iconset folder: \(error)"
+            self.alertTitle = "Error"
+            self.showAlert = true
             return
         }
         
@@ -168,11 +172,13 @@ struct ContentView: View {
         
         outputDirectory.stopAccessingSecurityScopedResource()
         
-        // Display alert
-        self.iconsGenerated = true
+        // Display success alert
         self.alertMessage = "Icons have been successfully created at \(iconsetFolder.path)!"
+        self.alertTitle = "Success"
+        self.iconsGenerated = true
         self.showAlert = true
     }
+
     
     func generateICNS() {
         guard let outputDirectory = outputDirectory else { return }
@@ -183,11 +189,38 @@ struct ContentView: View {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/iconutil")
         process.arguments = ["-c", "icns", iconsetFolder.path]
+        
+        // Setup the pipes to capture standard output and error
+        let outPipe = Pipe()
+        let errorPipe = Pipe()
+        process.standardOutput = outPipe
+        process.standardError = errorPipe
+        
         process.launch()
         
-        // Display alert
-        let icnsFilePath = outputDirectory.appendingPathComponent("\(iconName).icns").path
-        self.alertMessage = "ICNS file has been successfully created at \(icnsFilePath)!"
+        // Wait for the process to finish
+        process.waitUntilExit()
+        
+        // Read the process output
+        let outputData = outPipe.fileHandleForReading.readDataToEndOfFile()
+        _ = String(data: outputData, encoding: .utf8)
+        
+        // Read the process error output
+        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        let errorOutput = String(data: errorData, encoding: .utf8)
+        
+        // Check if the process completed successfully
+        if process.terminationStatus == 0 {
+            // Display success alert
+            let icnsFilePath = outputDirectory.appendingPathComponent("\(iconName).icns").path
+            self.alertMessage = "ICNS file has been successfully created at \(icnsFilePath)!"
+            self.alertTitle = "Success"
+        } else {
+            // Display error alert
+            self.alertMessage = "Failed to create ICNS file. Error: \(errorOutput ?? "Unknown error")"
+            self.alertTitle = "Error"
+        }
+        
         self.showAlert = true
     }
     
