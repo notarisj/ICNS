@@ -14,19 +14,43 @@ struct ContentView: View {
     @State private var iconName: String = "icon"
     @State private var showAlert = false
     @State private var alertMessage = ""
-
+    @State private var iconsGenerated = false
+    
     var body: some View {
         VStack(spacing: 20) {
-            if let img = image {
-                Image(nsImage: img)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: 300, maxHeight: 300)
-            } else {
-                Text("No Image Selected")
-                    .foregroundColor(.gray)
+            ZStack {
+                if let img = image {
+                    Image(nsImage: img)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: 300, maxHeight: 300)
+                } else {
+                    VStack {
+                        Image(systemName: "plus")
+                            .font(.system(size: 48))
+                            .foregroundColor(.gray)
+                        Text("Drag and Drop Image Here")
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: 400, maxHeight: 400)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(style: StrokeStyle(lineWidth: 8, dash: [20]))
+                            .foregroundColor(.gray)
+                    )
+                    .onDrop(of: [UTType.image], isTargeted: nil) { providers -> Bool in
+                        providers.first?.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier, completionHandler: { (data, error) in
+                            if let data = data, let nsImage = NSImage(data: data) {
+                                self.image = nsImage
+                            }
+                        })
+                        return true
+                    }
+                    .onTapGesture {
+                        selectImage()
+                    }
+                }
             }
-            Spacer()
             TextField("Icon Name", text: $iconName)
                 .padding(.horizontal)
             Text("Output Directory: \(formatDirectory(url: outputDirectory))")
@@ -34,32 +58,37 @@ struct ContentView: View {
                 .lineLimit(1)
                 .truncationMode(.middle)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            VStack {
-                HStack {
-                    Button("Select Image") {
-                        selectImage()
-                    }
-                    Button("Select Output Directory") {
-                        selectOutputDirectory()
-                    }
-                }
-                HStack {
-                    Button(action: generateIcons, label: {
-                        Text("Generate Icons")
-                    })
-                    Button(action: generateICNS, label: {
-                        Text("Generate ICNS")
-                    })
-                }
-            }
-            .padding(.horizontal)
         }
-        .padding()
+        .padding(20)
         .alert(isPresented: $showAlert) {
             Alert(title: Text("Success"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: selectOutputDirectory) {
+                    Label("Select Output Directory", systemImage: "folder")
+                }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: generateIcons) {
+                    Label("Generate Icons", systemImage: "square.grid.2x2")
+                }
+                .disabled(image == nil || outputDirectory == nil)
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: generateICNS) {
+                    Label("Generate ICNS", systemImage: "doc.append")
+                }
+                .disabled(!iconsGenerated)
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: clearImage) {
+                    Label("Clear Image", systemImage: "xmark.circle")
+                }
+            }
+        }
     }
-
+    
     func formatDirectory(url: URL?) -> String {
         guard let url = url else {
             return "Not Selected"
@@ -71,7 +100,7 @@ struct ContentView: View {
             return path
         }
     }
-
+    
     func selectImage() {
         let openPanel = NSOpenPanel()
         openPanel.canChooseFiles = true
@@ -86,7 +115,7 @@ struct ContentView: View {
             }
         }
     }
-
+    
     func selectOutputDirectory() {
         let openPanel = NSOpenPanel()
         openPanel.canChooseFiles = false
@@ -106,12 +135,12 @@ struct ContentView: View {
             }
         }
     }
-
+    
     func generateIcons() {
         guard let image = image, let outputDirectory = outputDirectory else { return }
-
+        
         let sizes = [16, 32, 128, 256, 512]
-
+        
         // Create a new .iconset folder
         let iconsetFolder = outputDirectory.appendingPathComponent("\(iconName).iconset")
         do {
@@ -120,7 +149,7 @@ struct ContentView: View {
             print("Error creating .iconset folder: \(error)")
             return
         }
-
+        
         for size in sizes {
             for scale in [1, 2] {
                 let scaledSize = NSSize(width: size*scale, height: size*scale)
@@ -131,28 +160,36 @@ struct ContentView: View {
                 newImage.save(as: .png, to: fileURL)
             }
         }
-
+        
         outputDirectory.stopAccessingSecurityScopedResource()
-
+        
         // Display alert
+        self.iconsGenerated = true
         self.alertMessage = "Icons have been successfully created at \(iconsetFolder.path)!"
         self.showAlert = true
     }
-
+    
     func generateICNS() {
         guard let outputDirectory = outputDirectory else { return }
-
+        
         let iconsetFolder = outputDirectory.appendingPathComponent("\(iconName).iconset")
-
+        
         // Convert the .iconset folder to an .icns file
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/iconutil")
         process.arguments = ["-c", "icns", iconsetFolder.path]
         process.launch()
-
+        
         // Display alert
         let icnsFilePath = outputDirectory.appendingPathComponent("\(iconName).icns").path
         self.alertMessage = "ICNS file has been successfully created at \(icnsFilePath)!"
         self.showAlert = true
+    }
+    
+    func clearImage() {
+        self.image = nil
+        self.iconName = "icon"
+        self.iconsGenerated = false  // Reset iconsGenerated when the image is cleared
+        self.outputDirectory = nil
     }
 }

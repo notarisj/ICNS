@@ -19,7 +19,7 @@ extension NSImage {
         resizedImage.addRepresentation(newImage)
         return resizedImage
     }
-
+    
     func save(as type: NSBitmapImageRep.FileType, to url: URL) {
         guard let data = tiffRepresentation,
               let imageRep = NSBitmapImageRep(data: data),
