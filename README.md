@@ -1,6 +1,6 @@
 # ICNS Generator
 
-A macOS app for creating `.iconset` and `.icns` files from images. 
+A macOS app for creating `.iconset` and `.icns` files from images. Download it in the [App Store](https://apps.apple.com/app/icnsify/id6502372452)
 
 <p align="center">
   <img src="screenshots/Screenshot1.png" alt="App Screenshot" width="50%"/>
