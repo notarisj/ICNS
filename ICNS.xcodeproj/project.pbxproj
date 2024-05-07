@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		05586F3D2BEA368300BD75E7 /* Icon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05586F3C2BEA368300BD75E7 /* Icon.swift */; };
+		05586F3F2BEA36E900BD75E7 /* IconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05586F3E2BEA36E900BD75E7 /* IconView.swift */; };
+		05586F412BEA377300BD75E7 /* NSImage+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05586F402BEA377300BD75E7 /* NSImage+Extensions.swift */; };
 		0572ED342B802E2700B9A2EB /* ICNSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0572ED332B802E2700B9A2EB /* ICNSApp.swift */; };
 		0572ED362B802E2700B9A2EB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0572ED352B802E2700B9A2EB /* ContentView.swift */; };
 		0572ED382B802E2900B9A2EB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0572ED372B802E2900B9A2EB /* Assets.xcassets */; };
@@ -14,7 +17,6 @@
 		0572ED462B802E2900B9A2EB /* ICNSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0572ED452B802E2900B9A2EB /* ICNSTests.swift */; };
 		0572ED502B802E2900B9A2EB /* ICNSUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0572ED4F2B802E2900B9A2EB /* ICNSUITests.swift */; };
 		0572ED522B802E2900B9A2EB /* ICNSUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0572ED512B802E2900B9A2EB /* ICNSUITestsLaunchTests.swift */; };
-		0572ED612B802EC000B9A2EB /* NSImage+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0572ED602B802EC000B9A2EB /* NSImage+Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,6 +37,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		05586F3C2BEA368300BD75E7 /* Icon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Icon.swift; sourceTree = "<group>"; };
+		05586F3E2BEA36E900BD75E7 /* IconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconView.swift; sourceTree = "<group>"; };
+		05586F402BEA377300BD75E7 /* NSImage+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSImage+Extensions.swift"; sourceTree = "<group>"; };
 		0572ED302B802E2700B9A2EB /* ICNS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ICNS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0572ED332B802E2700B9A2EB /* ICNSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICNSApp.swift; sourceTree = "<group>"; };
 		0572ED352B802E2700B9A2EB /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -46,7 +51,6 @@
 		0572ED4B2B802E2900B9A2EB /* ICNSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ICNSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0572ED4F2B802E2900B9A2EB /* ICNSUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICNSUITests.swift; sourceTree = "<group>"; };
 		0572ED512B802E2900B9A2EB /* ICNSUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICNSUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		0572ED602B802EC000B9A2EB /* NSImage+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSImage+Extensions.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,10 +103,12 @@
 			children = (
 				0572ED332B802E2700B9A2EB /* ICNSApp.swift */,
 				0572ED352B802E2700B9A2EB /* ContentView.swift */,
-				0572ED602B802EC000B9A2EB /* NSImage+Extensions.swift */,
+				05586F3C2BEA368300BD75E7 /* Icon.swift */,
+				05586F3E2BEA36E900BD75E7 /* IconView.swift */,
 				0572ED372B802E2900B9A2EB /* Assets.xcassets */,
 				0572ED3C2B802E2900B9A2EB /* ICNS.entitlements */,
 				0572ED392B802E2900B9A2EB /* Preview Content */,
+				05586F402BEA377300BD75E7 /* NSImage+Extensions.swift */,
 			);
 			path = ICNS;
 			sourceTree = "<group>";
@@ -196,7 +202,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1520;
-				LastUpgradeCheck = 1520;
+				LastUpgradeCheck = 1530;
 				TargetAttributes = {
 					0572ED2F2B802E2700B9A2EB = {
 						CreatedOnToolsVersion = 15.2;
@@ -262,8 +268,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05586F3D2BEA368300BD75E7 /* Icon.swift in Sources */,
+				05586F3F2BEA36E900BD75E7 /* IconView.swift in Sources */,
 				0572ED362B802E2700B9A2EB /* ContentView.swift in Sources */,
-				0572ED612B802EC000B9A2EB /* NSImage+Extensions.swift in Sources */,
+				05586F412BEA377300BD75E7 /* NSImage+Extensions.swift in Sources */,
 				0572ED342B802E2700B9A2EB /* ICNSApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -336,6 +344,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = NO;
@@ -403,6 +412,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = NO;
@@ -433,12 +443,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = ICNS/ICNS.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"ICNS/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 77J7879XVY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ICNS;
@@ -449,8 +460,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.notaris.ICNS;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.notaris.icns;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -463,12 +474,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = ICNS/ICNS.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"ICNS/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 77J7879XVY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ICNS;
@@ -479,8 +491,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.notaris.ICNS;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.notaris.icns;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -494,6 +506,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
@@ -512,6 +525,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
@@ -529,6 +543,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.notaris.ICNSUITests;
@@ -545,6 +560,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.notaris.ICNSUITests;
