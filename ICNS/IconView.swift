@@ -76,50 +76,49 @@ struct IconView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button(action: generateIcons) {
-                    Label("Generate Icons", systemImage: "gearshape.fill")
+                    Label("Export Icon Set", systemImage: "square.grid.3x3")
                 }
-                .help("Generate Icons")
+                .help("Export PNG icons in all sizes")
                 .disabled(self.icon.image == nil || icon.outputDirectory == nil)
             }
             ToolbarItem(placement: .primaryAction) {
                 Button(action: generateICNS) {
-                    Label("Generate ICNS", systemImage: "doc.badge.gearshape")
+                    Label("Export ICNS File", systemImage: "doc.zipper")
                 }
-                .help("Generate ICNS")
+                .help("Create macOS icon file (.icns)")
                 .disabled(!iconsGenerated)
             }
             ToolbarItem(placement: .destructiveAction) {
                 Button(action: clearImage) {
-                    Label("Clear Icon", systemImage: "trash")
+                    Label("Clear Image", systemImage: "xmark.circle")
                 }
-                .help("Clear Icon")
+                .help("Remove the current image")
             }
-            ToolbarItem(placement: .automatic) {
+            ToolbarItemGroup(placement: .navigation) {
                 Button {
                     showAddIconSheet = true
                 } label: {
-                    Image(systemName: "plus")
+                    Label("New Icon", systemImage: "plus")
                 }
-                .help("Add Icon")
-            }
-            ToolbarItem(placement: .automatic) {
+                .help("Create a new icon")
+                
                 Button {
                     if selectedIcon != nil {
                         showDeleteConfirmation = true
                     }
                 } label: {
-                    Image(systemName: "minus")
+                    Label("Delete Icon", systemImage: "minus")
                 }
-                .help("Remove Icon")
+                .help("Delete the selected icon")
                 .disabled(selectedIcon == nil)
             }
             ToolbarItem(placement: .automatic) {
                 Button {
                     showInspector.toggle()
                 } label: {
-                    Image(systemName: "sidebar.right")
+                    Label("Inspector", systemImage: "sidebar.right")
                 }
-                .help("Show/Hide Inspector")
+                .help("Show or hide the inspector panel")
             }
         }
     }
