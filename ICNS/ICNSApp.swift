@@ -12,9 +12,9 @@ struct ICNSApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .frame(minWidth: 450, maxWidth: .infinity, minHeight: 350, maxHeight: .infinity)
+                .frame(minWidth: 900, minHeight: 600)
         }
-        .defaultSize(width: 550, height: 350)
-        .windowStyle(HiddenTitleBarWindowStyle())
+        .defaultSize(width: 900, height: 600)
+//        .windowStyle(HiddenTitleBarWindowStyle())
     }
 }

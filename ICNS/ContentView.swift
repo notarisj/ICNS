@@ -1,118 +1,176 @@
-//
-//  ContentView.swift
-//  ICNS
-//
-//  Created by John Notaris on 17/2/24.
-//
-
 import SwiftUI
 
 struct ContentView: View {
     @State private var icons: [Icon] = []
-    @State private var selectedIndex: Int? = nil
+    @State private var selectedIcon: Icon? = nil
     @State private var showDeleteConfirmation = false
-    @State private var iconCount = 0
     
-    init() {
-        loadIcons()
-    }
+    // Shows/hides the right inspector
+    @State private var showInspector = true
+    
+    // Prompt user for new icon name
+    @State private var showAddIconSheet = false
+    @State private var newIconName = ""
     
     var body: some View {
-        NavigationView {
-            List {
-                ForEach(icons.indices, id: \.self) { index in
-                    NavigationLink(destination: LazyView(IconView(icon: $icons[index])), tag: index, selection: $selectedIndex) {
-                        Text(icons[index].name)
-                    }
-                }
-                .onDelete { indexSet in
-                    self.showDeleteConfirmation = true
-                }
+        NavigationSplitView {
+            // LEFT SIDEBAR
+            List(icons, selection: $selectedIcon) { icon in
+                Text(icon.name)
+                    .tag(icon) // Ensure proper tagging for selection
             }
-            .onChange(of: icons) {
-                saveIcons()
-            }
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button(action: toggleSidebar) {
-                        Image(systemName: "sidebar.left")
-                    }
-                }
-                ToolbarItem(placement: .navigation) {
-                    Button(action: addIcon) {
-                        Image(systemName: "plus")
-                    }
-                }
-                ToolbarItem(placement: .navigation) {
-                    Button(action: {
-                        if selectedIndex != nil {
-                            self.showDeleteConfirmation = true
-                        }
-                    }) {
-                        Image(systemName: "minus")
-                    }
-                    .disabled(selectedIndex == nil)
-                    .alert(isPresented: $showDeleteConfirmation) {
-                        Alert(
-                            title: Text("Remove Icon"),
-                            message: Text("Are you sure you want to remove this icon?"),
-                            primaryButton: .destructive(Text("Remove")) {
-                                if let selectedIndex = selectedIndex {
-                                    self.deleteIcon(at: selectedIndex)
-                                }
-                            },
-                            secondaryButton: .cancel()
-                        )
-                    }
-                }
-            }
-            .listStyle(SidebarListStyle())
-        }
-        .onAppear {
-            loadIcons() // Ensure icons are loaded when the view appears
-            if !icons.isEmpty {
-                selectedIndex = 0
-            }
-        }
-    }
-    
-    func addIcon() {
-        var uniqueNameFound = false
-        var newIconName = ""
-        
-        while !uniqueNameFound {
-            iconCount += 1
-            newIconName = "icon\(iconCount)"
+            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
             
-            if !icons.contains(where: { $0.name == newIconName }) {
-                uniqueNameFound = true
+        } detail: {
+            // CONTENT + INSPECTOR SIDE BY SIDE
+            HStack(spacing: 0) {
+                // MAIN CONTENT
+                Group {
+                    if let iconIndex = icons.firstIndex(where: { $0.id == selectedIcon?.id }) {
+                        IconView(
+                            icon: $icons[iconIndex],
+                            icons: $icons,
+                            selectedIcon: $selectedIcon,
+                            showInspector: $showInspector,
+                            showAddIconSheet: $showAddIconSheet,
+                            showDeleteConfirmation: $showDeleteConfirmation
+                        )
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        // "Drop image here" / "Select or create an Icon"
+                        VStack {
+                            Image(systemName: "rectangle.dashed")
+                                .font(.system(size: 50))
+                                .foregroundColor(.secondary)
+                            Text("Drop Image Here")
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                }
+                // This ensures the main content expands to fill remaining space
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                
+                // INSPECTOR (conditionally shown)
+                if showInspector {
+                    Divider()
+                    
+                    if let bindingIcon = bindingForSelectedIcon() {
+                        InspectorView(icon: bindingIcon)
+                            .frame(width: 250)
+                            .transition(.move(edge: .trailing))
+                    } else {
+                        Text("No icon selected")
+                            .frame(width: 250)
+                            .transition(.move(edge: .trailing))
+                    }
+                }
+            }
+            // Animate inspector's show/hide
+            .animation(.default, value: showInspector)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        
+        .onAppear {
+            loadIcons()
+            if selectedIcon == nil, !icons.isEmpty {
+                selectedIcon = icons.first
+            }
+        }
+        .onChange(of: icons) { _ in
+            saveIcons()
+            if selectedIcon == nil, !icons.isEmpty {
+                selectedIcon = icons.first
             }
         }
         
-        let newIcon = Icon(name: newIconName, image: nil, outputDirectory: nil)
-        icons.append(newIcon)
-    }
-    
-    func deleteIcon(at index: Int) {
-        self.icons.remove(at: index)
-        if icons.indices.contains(index) {
-            // If the next item exists, select it
-            self.selectedIndex = index
-        } else if index > 0 {
-            // Otherwise, select the previous item
-            self.selectedIndex = index - 1
-        } else {
-            // If no items are left, create a new empty item and select it
-            addIcon()
-            self.selectedIndex = icons.count - 1
+        .sheet(isPresented: $showAddIconSheet) {
+            addIconSheet
+        }
+        .alert(isPresented: $showDeleteConfirmation) {
+            Alert(
+                title: Text("Remove Icon"),
+                message: Text("Are you sure you want to remove this icon?"),
+                primaryButton: .destructive(Text("Remove")) {
+                    if let toDelete = selectedIcon {
+                        deleteIcon(icon: toDelete)
+                    }
+                },
+                secondaryButton: .cancel()
+            )
         }
     }
     
-    func loadIcons() {
+    // MARK: - Helper Functions
+    
+    private func bindingForSelectedIcon() -> Binding<Icon>? {
+        guard let selectedIcon = selectedIcon,
+              let index = icons.firstIndex(where: { $0.id == selectedIcon.id }) else {
+            return nil
+        }
+        return $icons[index]
+    }
+    
+    private var addIconSheet: some View {
+        VStack(spacing: 20) {
+            Text("Enter a name for the new icon:")
+                .font(.headline)
+            
+            TextField("Icon name", text: $newIconName)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .frame(width: 200)
+            
+            HStack {
+                Button("Cancel") {
+                    showAddIconSheet = false
+                    newIconName = ""
+                }
+                Button("Create") {
+                    addIcon(named: newIconName)
+                    showAddIconSheet = false
+                    newIconName = ""
+                }
+                .disabled(newIconName.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+        }
+        .padding()
+        .frame(minWidth: 300)
+    }
+    
+    private func addIcon(named name: String) {
+        let trimmedName = name.trimmingCharacters(in: .whitespaces)
+        if trimmedName.isEmpty { return }
+        
+        var finalName = trimmedName
+        var counter = 2
+        while icons.contains(where: { $0.name == finalName }) {
+            finalName = "\(trimmedName) \(counter)"
+            counter += 1
+        }
+        
+        let newIcon = Icon(name: finalName, image: nil as NSImage?, outputDirectory: nil as URL?)
+        icons.append(newIcon)
+        selectedIcon = newIcon
+    }
+    
+    private func deleteIcon(icon: Icon) {
+        if let index = icons.firstIndex(where: { $0.id == icon.id }) {
+            icons.remove(at: index)
+            
+            if icons.indices.contains(index) {
+                selectedIcon = icons[index]
+            } else if index > 0 {
+                selectedIcon = icons[index - 1]
+            } else {
+                selectedIcon = nil
+            }
+        }
+    }
+    
+    private func loadIcons() {
         if let savedIconsData = UserDefaults.standard.data(forKey: "icons") {
             do {
                 let savedIcons = try JSONDecoder().decode([Icon].self, from: savedIconsData)
-                print("Loaded icons: \(savedIcons)")
                 icons = savedIcons
             } catch {
                 print("Error decoding icons: \(error)")
@@ -120,28 +178,12 @@ struct ContentView: View {
         }
     }
     
-    func saveIcons() {
+    private func saveIcons() {
         do {
             let iconsData = try JSONEncoder().encode(icons)
-            print("Saving icons: \(icons)")
             UserDefaults.standard.set(iconsData, forKey: "icons")
         } catch {
             print("Error encoding icons: \(error)")
         }
-    }
-    
-    func toggleSidebar() {
-        NSApp.keyWindow?.firstResponder?.tryToPerform(#selector(NSSplitViewController.toggleSidebar(_:)), with: nil)
-    }
-}
-
-struct LazyView<Content: View>: View {
-    let build: () -> Content
-    init(_ build: @autoclosure @escaping () -> Content) {
-        self.build = build
-    }
-    
-    var body: Content {
-        build()
     }
 }

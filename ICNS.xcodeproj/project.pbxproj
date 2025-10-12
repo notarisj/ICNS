@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0549D61E2D2BEA94000C3808 /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0549D61D2D2BEA94000C3808 /* InspectorView.swift */; };
 		05586F3D2BEA368300BD75E7 /* Icon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05586F3C2BEA368300BD75E7 /* Icon.swift */; };
 		05586F3F2BEA36E900BD75E7 /* IconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05586F3E2BEA36E900BD75E7 /* IconView.swift */; };
 		05586F412BEA377300BD75E7 /* NSImage+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05586F402BEA377300BD75E7 /* NSImage+Extensions.swift */; };
@@ -37,6 +38,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0549D61D2D2BEA94000C3808 /* InspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorView.swift; sourceTree = "<group>"; };
 		05586F3C2BEA368300BD75E7 /* Icon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Icon.swift; sourceTree = "<group>"; };
 		05586F3E2BEA36E900BD75E7 /* IconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconView.swift; sourceTree = "<group>"; };
 		05586F402BEA377300BD75E7 /* NSImage+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSImage+Extensions.swift"; sourceTree = "<group>"; };
@@ -109,6 +111,7 @@
 				0572ED3C2B802E2900B9A2EB /* ICNS.entitlements */,
 				0572ED392B802E2900B9A2EB /* Preview Content */,
 				05586F402BEA377300BD75E7 /* NSImage+Extensions.swift */,
+				0549D61D2D2BEA94000C3808 /* InspectorView.swift */,
 			);
 			path = ICNS;
 			sourceTree = "<group>";
@@ -268,6 +271,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0549D61E2D2BEA94000C3808 /* InspectorView.swift in Sources */,
 				05586F3D2BEA368300BD75E7 /* Icon.swift in Sources */,
 				05586F3F2BEA36E900BD75E7 /* IconView.swift in Sources */,
 				0572ED362B802E2700B9A2EB /* ContentView.swift in Sources */,
@@ -346,7 +350,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 77J7879XVY;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -415,7 +419,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 77J7879XVY;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -445,13 +449,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = ICNS/ICNS.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"ICNS/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 77J7879XVY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ICNS;
@@ -476,13 +480,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = ICNS/ICNS.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"ICNS/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 77J7879XVY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ICNS;
