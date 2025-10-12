@@ -70,6 +70,7 @@ struct ContentView: View {
             .animation(.default, value: showInspector)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .navigationTitle(selectedIcon?.name ?? "ICNS")
         
         .onAppear {
             loadIcons()
