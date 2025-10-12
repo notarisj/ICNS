@@ -20,6 +20,7 @@ struct IconView: View {
     @State private var alertMessage = ""
     @State private var alertTitle = "Success"
     @State private var iconsGenerated = false
+    @State private var showClearImageConfirmation = false
     
     var body: some View {
         VStack {
@@ -89,10 +90,13 @@ struct IconView: View {
                 .disabled(!iconsGenerated)
             }
             ToolbarItem(placement: .destructiveAction) {
-                Button(action: clearImage) {
+                Button(action: {
+                    showClearImageConfirmation = true
+                }) {
                     Label("Clear Image", systemImage: "xmark.circle")
                 }
                 .help("Remove the current image")
+                .disabled(self.icon.image == nil)
             }
             ToolbarItemGroup(placement: .navigation) {
                 Button {
@@ -120,6 +124,14 @@ struct IconView: View {
                 }
                 .help("Show or hide the inspector panel")
             }
+        }
+        .alert("Clear Image", isPresented: $showClearImageConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Clear", role: .destructive) {
+                performClearImage()
+            }
+        } message: {
+            Text("Are you sure you want to clear this image and output directory? This action cannot be undone.")
         }
     }
     
@@ -244,6 +256,10 @@ struct IconView: View {
     }
     
     func clearImage() {
+        showClearImageConfirmation = true
+    }
+    
+    func performClearImage() {
         self.icon.image = nil
         self.icon.outputDirectory = ""
         iconsGenerated = false

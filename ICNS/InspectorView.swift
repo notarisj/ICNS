@@ -12,11 +12,10 @@ struct InspectorView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Inspector")
-                .font(.title2)
-                .padding(.top)
+            // Text("Inspector")
+            //     .font(.title2)
             
-            Divider()
+            // Divider()
             
             // Icon name
             Text("Icon Name:")
