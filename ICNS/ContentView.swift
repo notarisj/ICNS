@@ -1,17 +1,20 @@
+//
+//  ContentView.swift
+//  ICNS
+//
+//  Created by John Notaris on 17/2/24.
+//
+
 import SwiftUI
 
 struct ContentView: View {
     @State private var icons: [Icon] = []
     @State private var selectedIcon: Icon? = nil
     @State private var showDeleteConfirmation = false
-    
-    // Shows/hides the right inspector
     @State private var showInspector = true
-    
-    // Prompt user for new icon name
     @State private var showAddIconSheet = false
     @State private var newIconName = ""
-    
+
     var body: some View {
         NavigationSplitView {
             // LEFT SIDEBAR
@@ -21,7 +24,7 @@ struct ContentView: View {
             }
             .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 300)
             .navigationTitle("Icons")
-            
+
         } detail: {
             // MAIN CONTENT AREA
             Group {
@@ -35,7 +38,6 @@ struct ContentView: View {
                         showDeleteConfirmation: $showDeleteConfirmation
                     )
                 } else {
-                    // "Drop image here" / "Select or create an Icon"
                     VStack {
                         Image(systemName: "rectangle.dashed")
                             .font(.system(size: 50))
@@ -43,27 +45,26 @@ struct ContentView: View {
                         Text("Drop Image Here")
                             .foregroundColor(.secondary)
                     }
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .navigationTitle(selectedIcon?.name ?? "ICNS")
-            // RIGHT INSPECTOR SIDEBAR - MOVED HERE
-            .inspector(isPresented: $showInspector) {
-                if let bindingIcon = bindingForSelectedIcon() {
-                    InspectorView(icon: bindingIcon)
-                        .inspectorColumnWidth(min: 250, ideal: 280, max: 350)
-                } else {
-                    VStack {
-                        Text("No icon selected")
-                            .foregroundColor(.secondary)
-                    }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .inspectorColumnWidth(min: 250, ideal: 280, max: 350)
                 }
             }
+            .navigationTitle(selectedIcon?.name ?? "ICNS")
         }
         .navigationSplitViewStyle(.balanced)
         .toolbarBackground(.hidden, for: .automatic)
+        .inspector(isPresented: $showInspector) {
+            if let bindingIcon = bindingForSelectedIcon() {
+                InspectorView(icon: bindingIcon)
+                    .inspectorColumnWidth(min: 250, ideal: 280, max: 350)
+            } else {
+                VStack {
+                    Text("No icon selected")
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .inspectorColumnWidth(min: 250, ideal: 280, max: 350)
+            }
+        }
         .onAppear {
             loadIcons()
             if selectedIcon == nil, !icons.isEmpty {
