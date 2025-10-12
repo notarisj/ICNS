@@ -17,61 +17,53 @@ struct ContentView: View {
             // LEFT SIDEBAR
             List(icons, selection: $selectedIcon) { icon in
                 Text(icon.name)
-                    .tag(icon) // Ensure proper tagging for selection
+                    .tag(icon)
             }
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
+            .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 300)
+            .navigationTitle("Icons")
             
         } detail: {
-            // CONTENT + INSPECTOR SIDE BY SIDE
-            HStack(spacing: 0) {
-                // MAIN CONTENT
-                Group {
-                    if let iconIndex = icons.firstIndex(where: { $0.id == selectedIcon?.id }) {
-                        IconView(
-                            icon: $icons[iconIndex],
-                            icons: $icons,
-                            selectedIcon: $selectedIcon,
-                            showInspector: $showInspector,
-                            showAddIconSheet: $showAddIconSheet,
-                            showDeleteConfirmation: $showDeleteConfirmation
-                        )
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        // "Drop image here" / "Select or create an Icon"
-                        VStack {
-                            Image(systemName: "rectangle.dashed")
-                                .font(.system(size: 50))
-                                .foregroundColor(.secondary)
-                            Text("Drop Image Here")
-                                .foregroundColor(.secondary)
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
-                }
-                // This ensures the main content expands to fill remaining space
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
-                // INSPECTOR (conditionally shown)
-                if showInspector {
-                    Divider()
-                    
-                    if let bindingIcon = bindingForSelectedIcon() {
-                        InspectorView(icon: bindingIcon)
-                            .frame(width: 250)
-                            .transition(.move(edge: .trailing))
-                    } else {
-                        Text("No icon selected")
-                            .frame(width: 250)
-                            .transition(.move(edge: .trailing))
+            // MAIN CONTENT AREA
+            Group {
+                if let iconIndex = icons.firstIndex(where: { $0.id == selectedIcon?.id }) {
+                    IconView(
+                        icon: $icons[iconIndex],
+                        icons: $icons,
+                        selectedIcon: $selectedIcon,
+                        showInspector: $showInspector,
+                        showAddIconSheet: $showAddIconSheet,
+                        showDeleteConfirmation: $showDeleteConfirmation
+                    )
+                } else {
+                    // "Drop image here" / "Select or create an Icon"
+                    VStack {
+                        Image(systemName: "rectangle.dashed")
+                            .font(.system(size: 50))
+                            .foregroundColor(.secondary)
+                        Text("Drop Image Here")
+                            .foregroundColor(.secondary)
                     }
                 }
             }
-            // Animate inspector's show/hide
-            .animation(.default, value: showInspector)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .navigationTitle(selectedIcon?.name ?? "ICNS")
+            // RIGHT INSPECTOR SIDEBAR - MOVED HERE
+            .inspector(isPresented: $showInspector) {
+                if let bindingIcon = bindingForSelectedIcon() {
+                    InspectorView(icon: bindingIcon)
+                        .inspectorColumnWidth(min: 250, ideal: 280, max: 350)
+                } else {
+                    VStack {
+                        Text("No icon selected")
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .inspectorColumnWidth(min: 250, ideal: 280, max: 350)
+                }
+            }
         }
-        .navigationTitle(selectedIcon?.name ?? "ICNS")
-        
+        .navigationSplitViewStyle(.balanced)
+        .toolbarBackground(.hidden, for: .automatic)
         .onAppear {
             loadIcons()
             if selectedIcon == nil, !icons.isEmpty {
@@ -84,7 +76,6 @@ struct ContentView: View {
                 selectedIcon = icons.first
             }
         }
-        
         .sheet(isPresented: $showAddIconSheet) {
             addIconSheet
         }
