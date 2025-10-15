@@ -18,9 +18,12 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             // LEFT SIDEBAR
-            List(icons, selection: $selectedIcon) { icon in
-                Text(icon.name)
-                    .tag(icon)
+            List(selection: $selectedIcon) {
+                ForEach(icons) { icon in
+                    Text(icon.name)
+                        .tag(icon)
+                }
+                .onMove(perform: moveIcons)
             }
             .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 300)
             .navigationTitle("Icons")
@@ -144,6 +147,22 @@ struct ContentView: View {
         let newIcon = Icon(name: finalName, image: nil as NSImage?, outputDirectory: nil as URL?)
         icons.append(newIcon)
         selectedIcon = newIcon
+    }
+    
+    private func moveIcons(from source: IndexSet, to destination: Int) {
+        // Remember the currently selected icon
+        let selectedIconId = selectedIcon?.id
+        
+        // Perform the move operation
+        icons.move(fromOffsets: source, toOffset: destination)
+        
+        // Restore the selection after reordering
+        if let selectedId = selectedIconId {
+            selectedIcon = icons.first { $0.id == selectedId }
+        }
+        
+        // Save the new order
+        saveIcons()
     }
     
     private func deleteIcon(icon: Icon) {
