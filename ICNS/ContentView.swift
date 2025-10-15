@@ -48,7 +48,7 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-            .navigationTitle(selectedIcon?.name ?? "ICNS")
+            .navigationTitle(currentIconName)
         }
         .navigationSplitViewStyle(.balanced)
         .toolbarBackground(.hidden, for: .automatic)
@@ -178,5 +178,14 @@ struct ContentView: View {
         } catch {
             print("Error encoding icons: \(error)")
         }
+    }
+    
+    // Add this computed property
+    private var currentIconName: String {
+        guard let selectedIcon = selectedIcon,
+              let iconIndex = icons.firstIndex(where: { $0.id == selectedIcon.id }) else {
+            return "ICNS"
+        }
+        return icons[iconIndex].name
     }
 }
