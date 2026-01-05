@@ -71,7 +71,7 @@ struct IconView: View {
         .alert(isPresented: $showAlert) {
             Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
-        .onChange(of: icon.name) { _ in
+        .onChange(of: icon.name) {
             iconsGenerated = false
         }
         .toolbar {
@@ -98,32 +98,7 @@ struct IconView: View {
                 .help("Remove the current image")
                 .disabled(self.icon.image == nil)
             }
-            ToolbarItemGroup(placement: .navigation) {
-                Button {
-                    showAddIconSheet = true
-                } label: {
-                    Label("New Icon", systemImage: "plus")
-                }
-                .help("Create a new icon")
-                
-                Button {
-                    if selectedIcon != nil {
-                        showDeleteConfirmation = true
-                    }
-                } label: {
-                    Label("Delete Icon", systemImage: "minus")
-                }
-                .help("Delete the selected icon")
-                .disabled(selectedIcon == nil)
-            }
-            ToolbarItem(placement: .automatic) {
-                Button {
-                    showInspector.toggle()
-                } label: {
-                    Label("Inspector", systemImage: "sidebar.right")
-                }
-                .help("Show or hide the inspector panel")
-            }
+
         }
         .alert("Clear Image", isPresented: $showClearImageConfirmation) {
             Button("Cancel", role: .cancel) { }

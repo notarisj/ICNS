@@ -52,6 +52,35 @@ struct ContentView: View {
                 }
             }
             .navigationTitle(currentIconName)
+            .toolbar {
+                ToolbarItemGroup(placement: .navigation) {
+                    Button {
+                        showAddIconSheet = true
+                    } label: {
+                        Label("New Icon", systemImage: "plus")
+                    }
+                    .help("Create a new icon")
+                    
+                    Button {
+                        if selectedIcon != nil {
+                            showDeleteConfirmation = true
+                        }
+                    } label: {
+                        Label("Delete Icon", systemImage: "minus")
+                    }
+                    .help("Delete the selected icon")
+                    .disabled(selectedIcon == nil)
+                }
+                
+                ToolbarItem(placement: .automatic) {
+                    Button {
+                        showInspector.toggle()
+                    } label: {
+                        Label("Inspector", systemImage: "sidebar.right")
+                    }
+                    .help("Show or hide the inspector panel")
+                }
+            }
         }
         .navigationSplitViewStyle(.balanced)
         .toolbarBackground(.hidden, for: .automatic)
@@ -74,7 +103,7 @@ struct ContentView: View {
                 selectedIcon = icons.first
             }
         }
-        .onChange(of: icons) { _ in
+        .onChange(of: icons) {
             saveIcons()
             if selectedIcon == nil, !icons.isEmpty {
                 selectedIcon = icons.first
