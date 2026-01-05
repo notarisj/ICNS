@@ -5,7 +5,7 @@
 A macOS app for creating `.iconset` and `.icns` files from images. 
 
 <p align="center">
-  <img src="screenshots/Screenshot1.png" alt="App Screenshot" width="50%"/>
+  <img src="myAssets/Screenshot1.png" alt="App Screenshot" width="100%"/>
 </p>
 
 ## Usage
