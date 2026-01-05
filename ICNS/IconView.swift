@@ -21,6 +21,7 @@ struct IconView: View {
     @State private var alertTitle = "Success"
     @State private var iconsGenerated = false
     @State private var showClearImageConfirmation = false
+    @State private var isDropTargeted = false
     
     var body: some View {
         VStack {
@@ -37,16 +38,18 @@ struct IconView: View {
                     VStack(spacing: 20) {
                         ZStack {
                             Circle()
-                                .fill(Color.accentColor.opacity(0.1))
+                                .fill(Color.accentColor.opacity(isDropTargeted ? 0.2 : 0.1))
                                 .frame(width: 80, height: 80)
                             
                             Image(systemName: "arrow.down.doc")
                                 .font(.system(size: 36))
                                 .foregroundStyle(.tint)
+                                .scaleEffect(isDropTargeted ? 1.1 : 1.0)
                         }
+                        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isDropTargeted)
                         
                         VStack(spacing: 6) {
-                            Text("Drop Master Image")
+                            Text(isDropTargeted ? "Drop Image Here" : "Drop Master Image")
                                 .font(.title3)
                                 .fontWeight(.medium)
                             
@@ -61,20 +64,25 @@ struct IconView: View {
                     .background(
                         ZStack {
                             RoundedRectangle(cornerRadius: 20)
-                                .fill(Color.accentColor.opacity(0.02))
+                                .fill(Color.accentColor.opacity(isDropTargeted ? 0.1 : 0.02))
                             
                             RoundedRectangle(cornerRadius: 20)
-                                .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [10, 6]))
-                                .foregroundStyle(.tertiary.opacity(0.5))
+                                .strokeBorder(style: StrokeStyle(lineWidth: isDropTargeted ? 3 : 2, dash: isDropTargeted ? [] : [10, 6]))
+                                .foregroundStyle(isDropTargeted ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.tertiary.opacity(0.5)))
                         }
                     )
+                    .animation(.easeInOut(duration: 0.2), value: isDropTargeted)
 
                     .contentShape(Rectangle())
-                    .onDrop(of: [UTType.image], isTargeted: nil) { providers -> Bool in
+                    .onDrop(of: [UTType.image], isTargeted: $isDropTargeted) { providers -> Bool in
                         providers.first?.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier,
                                                                completionHandler: { (data, error) in
                             if let data = data {
-                                self.icon.image = data
+                                DispatchQueue.main.async {
+                                    self.icon.image = data
+                                    self.icon.outputDirectory = nil // Reset output directory on new image
+                                    self.iconsGenerated = false
+                                }
                             }
                         })
                         return true
