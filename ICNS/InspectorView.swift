@@ -53,6 +53,9 @@ struct InspectorView: View {
         }
         .formStyle(.grouped)
         .padding()
+        .onTapGesture {
+            NSApp.keyWindow?.makeFirstResponder(nil)
+        }
     }
     
     // MARK: - Functions
