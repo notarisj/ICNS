@@ -18,6 +18,7 @@
 		0572ED462B802E2900B9A2EB /* ICNSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0572ED452B802E2900B9A2EB /* ICNSTests.swift */; };
 		0572ED502B802E2900B9A2EB /* ICNSUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0572ED4F2B802E2900B9A2EB /* ICNSUITests.swift */; };
 		0572ED522B802E2900B9A2EB /* ICNSUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0572ED512B802E2900B9A2EB /* ICNSUITestsLaunchTests.swift */; };
+		058A581B2F0C440400A117B0 /* IconStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 058A581A2F0C440100A117B0 /* IconStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +54,7 @@
 		0572ED4B2B802E2900B9A2EB /* ICNSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ICNSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0572ED4F2B802E2900B9A2EB /* ICNSUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICNSUITests.swift; sourceTree = "<group>"; };
 		0572ED512B802E2900B9A2EB /* ICNSUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICNSUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		058A581A2F0C440100A117B0 /* IconStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +105,7 @@
 		0572ED322B802E2700B9A2EB /* ICNS */ = {
 			isa = PBXGroup;
 			children = (
+				058A581A2F0C440100A117B0 /* IconStore.swift */,
 				0572ED332B802E2700B9A2EB /* ICNSApp.swift */,
 				0572ED352B802E2700B9A2EB /* ContentView.swift */,
 				05586F3C2BEA368300BD75E7 /* Icon.swift */,
@@ -272,6 +275,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0549D61E2D2BEA94000C3808 /* InspectorView.swift in Sources */,
+				058A581B2F0C440400A117B0 /* IconStore.swift in Sources */,
 				05586F3D2BEA368300BD75E7 /* Icon.swift in Sources */,
 				05586F3F2BEA36E900BD75E7 /* IconView.swift in Sources */,
 				0572ED362B802E2700B9A2EB /* ContentView.swift in Sources */,

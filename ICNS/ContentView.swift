@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var icons: [Icon] = []
+    @EnvironmentObject var store: IconStore
     @State private var selectedIconID: Icon.ID? = nil
     @State private var showDeleteConfirmation = false
     @State private var showInspector = true
@@ -19,7 +19,7 @@ struct ContentView: View {
         NavigationSplitView {
             // LEFT SIDEBAR
             List(selection: $selectedIconID) {
-                ForEach(icons) { icon in
+                ForEach(store.icons) { icon in
                     Text(icon.name)
                         .tag(icon.id)
                 }
@@ -42,10 +42,10 @@ struct ContentView: View {
         } detail: {
             // MAIN CONTENT AREA
             Group {
-                if let iconIndex = icons.firstIndex(where: { $0.id == selectedIconID }) {
+                if let iconIndex = store.icons.firstIndex(where: { $0.id == selectedIconID }) {
                     IconView(
-                        icon: $icons[iconIndex],
-                        icons: $icons,
+                        icon: $store.icons[iconIndex],
+                        icons: $store.icons,
                         showInspector: $showInspector,
                         showAddIconSheet: $showAddIconSheet,
                         showDeleteConfirmation: $showDeleteConfirmation
@@ -100,12 +100,7 @@ struct ContentView: View {
                 .inspectorColumnWidth(min: 250, ideal: 280, max: 350)
             }
         }
-        .onAppear {
-            loadIcons()
-        }
-        .onChange(of: icons) {
-            saveIcons()
-        }
+
         .sheet(isPresented: $showAddIconSheet) {
             addIconSheet
         }
@@ -220,10 +215,10 @@ struct ContentView: View {
     
     private func bindingForSelectedIcon() -> Binding<Icon>? {
         guard let selectedID = selectedIconID,
-              let index = icons.firstIndex(where: { $0.id == selectedID }) else {
+              let index = store.icons.firstIndex(where: { $0.id == selectedID }) else {
             return nil
         }
-        return $icons[index]
+        return $store.icons[index]
     }
     
     private var addIconSheet: some View {
@@ -286,66 +281,45 @@ struct ContentView: View {
         
         var finalName = trimmedName
         var counter = 2
-        while icons.contains(where: { $0.name == finalName }) {
+        while store.icons.contains(where: { $0.name == finalName }) {
             finalName = "\(trimmedName) \(counter)"
             counter += 1
         }
         
         let newIcon = Icon(name: finalName, image: nil as NSImage?, outputDirectory: nil as URL?)
-        icons.append(newIcon)
+        store.icons.append(newIcon)
         selectedIconID = newIcon.id
     }
     
     private func moveIcons(from source: IndexSet, to destination: Int) {
-        icons.move(fromOffsets: source, toOffset: destination)
-        // No need to restore selection manually with ID based selection usually,
-        // but if the ID moves, the selection state should track it if the List handles it correctly.
-        saveIcons()
+        store.icons.move(fromOffsets: source, toOffset: destination)
     }
     
     private func deleteIcon() {
         if let selectedID = selectedIconID,
-           let index = icons.firstIndex(where: { $0.id == selectedID }) {
-            icons.remove(at: index)
+           let index = store.icons.firstIndex(where: { $0.id == selectedID }) {
+            store.icons.remove(at: index)
             
-            if icons.isEmpty {
+            if store.icons.isEmpty {
                 selectedIconID = nil
-            } else if icons.indices.contains(index) {
-                selectedIconID = icons[index].id
+            } else if store.icons.indices.contains(index) {
+                selectedIconID = store.icons[index].id
             } else if index > 0 {
-                selectedIconID = icons[index - 1].id
+                selectedIconID = store.icons[index - 1].id
             } else {
                 selectedIconID = nil
             }
         }
     }
     
-    private func loadIcons() {
-        if let savedIconsData = UserDefaults.standard.data(forKey: "icons") {
-            do {
-                let savedIcons = try JSONDecoder().decode([Icon].self, from: savedIconsData)
-                icons = savedIcons
-            } catch {
-                print("Error decoding icons: \(error)")
-            }
-        }
-    }
-    
-    private func saveIcons() {
-        do {
-            let iconsData = try JSONEncoder().encode(icons)
-            UserDefaults.standard.set(iconsData, forKey: "icons")
-        } catch {
-            print("Error encoding icons: \(error)")
-        }
-    }
+
     
     // Add this computed property
     private var currentIconName: String {
         guard let selectedID = selectedIconID,
-              let iconIndex = icons.firstIndex(where: { $0.id == selectedID }) else {
+              let iconIndex = store.icons.firstIndex(where: { $0.id == selectedID }) else {
             return "ICNS"
         }
-        return icons[iconIndex].name
+        return store.icons[iconIndex].name
     }
 }
