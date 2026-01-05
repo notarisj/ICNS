@@ -203,7 +203,7 @@ struct ContentView: View {
                     Button {
                         showInspector.toggle()
                     } label: {
-                        Label("Inspector", systemImage: "sidebar.right")
+                        Label("Inspector", systemImage: "slider.horizontal.3")
                     }
                     .help("Show or hide the inspector panel")
                 }

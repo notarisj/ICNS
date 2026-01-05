@@ -33,6 +33,12 @@ struct IconView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(maxWidth: 300, maxHeight: 300)
+                        .overlay(
+                            ZStack {
+                                Rectangle()
+                                    .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                            }
+                        )
                 } else {
 
                     VStack(spacing: 20) {
@@ -103,37 +109,39 @@ struct IconView: View {
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button(action: generateIcons) {
-                    Label("Export Icon Set", systemImage: "square.grid.3x3")
+                if !iconsGenerated {
+                    Button(action: generateIcons) {
+                        Label("Generate Icons", systemImage: "sparkles.rectangle.stack")
+                    }
+                    .help("Generate the icon set from your master image")
+                    .disabled(self.icon.image == nil || icon.outputDirectory == nil)
+                } else {
+                    Button(action: generateICNS) {
+                        Label("Save ICNS", systemImage: "arrow.down.doc.fill")
+                    }
+                    .help("Convert the icon set to a .icns file")
                 }
-                .help("Export PNG icons in all sizes")
-                .disabled(self.icon.image == nil || icon.outputDirectory == nil)
             }
-            ToolbarItem(placement: .primaryAction) {
-                Button(action: generateICNS) {
-                    Label("Export ICNS File", systemImage: "doc.zipper")
-                }
-                .help("Create macOS icon file (.icns)")
-                .disabled(!iconsGenerated)
-            }
+            
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     showInspector.toggle()
                 } label: {
-                    Label("Inspector", systemImage: "sidebar.right")
+                    Label("Inspector", systemImage: "slider.horizontal.3")
                 }
                 .help("Show or hide the inspector panel")
             }
-            ToolbarItem(placement: .destructiveAction) {
-                Button(action: {
-                    showClearImageConfirmation = true
-                }) {
-                    Label("Clear Image", systemImage: "xmark.circle")
+            
+            if icon.image != nil {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: {
+                        showClearImageConfirmation = true
+                    }) {
+                        Label("Clear Image", systemImage: "trash")
+                    }
+                    .help("Remove the current image")
                 }
-                .help("Remove the current image")
-                .disabled(self.icon.image == nil)
             }
-
         }
         .alert("Clear Image", isPresented: $showClearImageConfirmation) {
             Button("Cancel", role: .cancel) { }
