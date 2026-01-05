@@ -11,46 +11,47 @@ struct InspectorView: View {
     @Binding var icon: Icon
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Text("Inspector")
-            //     .font(.title2)
-            
-            // Divider()
-            
-            // Icon name
-            Text("Icon Name:")
-                .fontWeight(.semibold)
-            TextField("", text: $icon.name)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-            
-            // Output directory
-            Text("Output Directory:")
-                .fontWeight(.semibold)
-            Text(formatDirectory(url: URL(string: icon.outputDirectory ?? "")))
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .lineLimit(1)
-                .truncationMode(.middle)
-            
-            Button("Select Output Directory") {
-                selectOutputDirectory()
-            }
-            .buttonStyle(LinkButtonStyle())
-            
-            Divider()
-            
-            // Icon information
-            if let data = icon.image,
-               let nsImg = NSImage(data: data) {
-                Text("Icon Dimensions: \(Int(nsImg.size.width))x\(Int(nsImg.size.height))")
-                    .font(.subheadline)
-            } else {
-                Text("No image selected")
-                    .font(.subheadline)
+        Form {
+            Section("Identity") {
+                TextField("Name", text: $icon.name)
             }
             
-            Spacer()
+            Section("Export Settings") {
+                LabeledContent("Location") {
+                    HStack {
+                        Text(formatDirectory(url: URL(string: icon.outputDirectory ?? "")))
+                            .truncationMode(.middle)
+                            .foregroundStyle(.secondary)
+                            .help(icon.outputDirectory ?? "Not Selected")
+                        
+                        Spacer()
+                        
+                        Button {
+                            selectOutputDirectory()
+                        } label: {
+                            Image(systemName: "folder")
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .help("Change output directory")
+                    }
+                }
+            }
+            
+            Section("Master Image") {
+                if let data = icon.image, let nsImg = NSImage(data: data) {
+                    VStack(spacing: 12) {
+                        LabeledContent("Dimensions", value: "\(Int(nsImg.size.width)) × \(Int(nsImg.size.height))")
+                    }
+                    .padding(.vertical, 4)
+                } else {
+                    Text("No image selected")
+                        .foregroundStyle(.secondary)
+                        .italic()
+                }
+            }
         }
+        .formStyle(.grouped)
         .padding()
     }
     
@@ -62,7 +63,7 @@ struct InspectorView: View {
         }
         let path = url.absoluteString
         if let range = path.range(of: "file://") {
-            return String(path[range.upperBound...])
+            return String(path[range.upperBound...]).removingPercentEncoding ?? path
         } else {
             return path
         }
@@ -95,4 +96,3 @@ struct InspectorView: View {
         }
     }
 }
-

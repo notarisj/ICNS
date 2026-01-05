@@ -11,7 +11,7 @@ import UniformTypeIdentifiers
 struct IconView: View {
     @Binding var icon: Icon
     @Binding var icons: [Icon]
-    @Binding var selectedIcon: Icon?
+
     @Binding var showInspector: Bool
     @Binding var showAddIconSheet: Bool
     @Binding var showDeleteConfirmation: Bool
@@ -33,23 +33,42 @@ struct IconView: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(maxWidth: 300, maxHeight: 300)
                 } else {
-                    VStack(spacing: 16) {
-                        Image(systemName: "plus.circle")
-                            .font(.system(size: 48))
-                            .foregroundStyle(.secondary)
-                        Text("Drop Image Here")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                        Text("or click to select")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
+
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.accentColor.opacity(0.1))
+                                .frame(width: 80, height: 80)
+                            
+                            Image(systemName: "arrow.down.doc")
+                                .font(.system(size: 36))
+                                .foregroundStyle(.tint)
+                        }
+                        
+                        VStack(spacing: 6) {
+                            Text("Drop Master Image")
+                                .font(.title3)
+                                .fontWeight(.medium)
+                            
+                            Text("Drag your 1024x1024 artwork here\nor click to browse files")
+                                .font(.callout)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: 250)
+                        }
                     }
-                    .frame(maxWidth: 300, maxHeight: 300)
+                    .frame(maxWidth: 360, maxHeight: 360)
                     .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8, 4]))
-                            .foregroundStyle(.quaternary)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.accentColor.opacity(0.02))
+                            
+                            RoundedRectangle(cornerRadius: 20)
+                                .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [10, 6]))
+                                .foregroundStyle(.tertiary.opacity(0.5))
+                        }
                     )
+
                     .contentShape(Rectangle())
                     .onDrop(of: [UTType.image], isTargeted: nil) { providers -> Bool in
                         providers.first?.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier,
@@ -88,6 +107,14 @@ struct IconView: View {
                 }
                 .help("Create macOS icon file (.icns)")
                 .disabled(!iconsGenerated)
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showInspector.toggle()
+                } label: {
+                    Label("Inspector", systemImage: "sidebar.right")
+                }
+                .help("Show or hide the inspector panel")
             }
             ToolbarItem(placement: .destructiveAction) {
                 Button(action: {
