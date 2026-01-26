@@ -9,6 +9,10 @@ import SwiftUI
 
 struct InspectorView: View {
     @Binding var icon: Icon
+    @AppStorage("showImageBorder") private var showImageBorder = true
+    @EnvironmentObject var profileStore: ProfileStore
+    
+    @State private var showProfilesManagement = false
     
     var body: some View {
         Form {
@@ -38,6 +42,24 @@ struct InspectorView: View {
                 }
             }
             
+            Section("Export Profile") {
+                VStack(alignment: .leading, spacing: 8) {
+                    ProfilePicker(
+                        selectedProfileID: $icon.selectedProfileID,
+                        profiles: profileStore.profiles
+                    )
+                    
+                    Button {
+                        showProfilesManagement = true
+                    } label: {
+                        Label("Manage Profiles", systemImage: "square.stack.3d.up")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+            }
+            
             Section("Master Image") {
                 if let data = icon.image, let nsImg = NSImage(data: data) {
                     VStack(spacing: 12) {
@@ -50,9 +72,15 @@ struct InspectorView: View {
                         .italic()
                 }
             }
+            
+            Section("Display") {
+                Toggle("Show Border", isOn: $showImageBorder)
+            }
         }
         .formStyle(.grouped)
-        .padding()
+        .sheet(isPresented: $showProfilesManagement) {
+            ExportProfilesView(profileStore: profileStore)
+        }
         .onTapGesture {
             NSApp.keyWindow?.makeFirstResponder(nil)
         }

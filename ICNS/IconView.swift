@@ -2,7 +2,7 @@
 //  IconView.swift
 //  ICNS
 //
-//  Created by John Notaris on 7/5/24.
+//  Created by Ioannis Notaris on 7/5/24.
 //
 
 import SwiftUI
@@ -15,6 +15,9 @@ struct IconView: View {
     @Binding var showInspector: Bool
     @Binding var showAddIconSheet: Bool
     @Binding var showDeleteConfirmation: Bool
+    
+    @EnvironmentObject var profileStore: ProfileStore
+    @AppStorage("showImageBorder") private var showImageBorder = true
     
     @State private var showAlert = false
     @State private var alertMessage = ""
@@ -34,9 +37,11 @@ struct IconView: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(maxWidth: 300, maxHeight: 300)
                         .overlay(
-                            ZStack {
-                                Rectangle()
-                                    .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                            Group {
+                                if showImageBorder {
+                                    Rectangle()
+                                        .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                                }
                             }
                         )
                 } else {
@@ -125,7 +130,7 @@ struct IconView: View {
             
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    showInspector.toggle()
+                    WindowHelper.toggleInspectorWithResize($showInspector)
                 } label: {
                     Label("Inspector", systemImage: "slider.horizontal.3")
                 }
@@ -186,7 +191,9 @@ struct IconView: View {
             return
         }
         
-        let sizes = [16, 32, 128, 256, 512]
+        // Get selected profile or use default
+        let profile = profileStore.getProfile(byID: icon.selectedProfileID)
+        let sizes = profile.sizes
         
         // Create a new .iconset folder
         let iconsetFolder = outputDirectoryURL.appendingPathComponent("\(icon.name).iconset")
@@ -207,7 +214,7 @@ struct IconView: View {
                 let scaleSuffix = scale == 2 ? "@2x" : ""
                 let filename = "icon_\(size)x\(size)\(scaleSuffix).png"
                 let fileURL = iconsetFolder.appendingPathComponent(filename)
-                newImage.saveImage(as: .png, to: fileURL)
+                newImage.saveImage(as: NSBitmapImageRep.FileType.png, to: fileURL)
             }
         }
         

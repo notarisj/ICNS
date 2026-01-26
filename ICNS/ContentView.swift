@@ -80,6 +80,7 @@ struct ContentView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .toolbarBackground(.hidden, for: .automatic)
+        .frame(minWidth: showInspector ? nil : 600)
         .inspector(isPresented: $showInspector) {
             if let bindingIcon = bindingForSelectedIcon() {
                 InspectorView(icon: bindingIcon)
@@ -160,7 +161,7 @@ struct ContentView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    .frame(width: 200, alignment: .leading)
+                    .frame(width: 150, alignment: .leading)
                     
                     HStack(spacing: 12) {
                         Image(systemName: "photo.on.rectangle")
@@ -176,7 +177,7 @@ struct ContentView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    .frame(width: 200, alignment: .leading)
+                    .frame(width: 150, alignment: .leading)
                     
                     HStack(spacing: 12) {
                         Image(systemName: "square.and.arrow.up")
@@ -192,7 +193,7 @@ struct ContentView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    .frame(width: 200, alignment: .leading)
+                    .frame(width: 150, alignment: .leading)
                 }
                 .padding(.top, 16)
             }
@@ -201,7 +202,7 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-                        showInspector.toggle()
+                        WindowHelper.toggleInspectorWithResize($showInspector)
                     } label: {
                         Label("Inspector", systemImage: "slider.horizontal.3")
                     }
