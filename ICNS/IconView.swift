@@ -270,11 +270,21 @@ private struct IconPreviewArea: View {
                             .gesture(
                                 DragGesture()
                                     .onChanged { value in
-                                        let newOffset = CGSize(
+                                        let tentativeOffset = CGSize(
                                             width: lastDragOffset.width + value.translation.width,
                                             height: lastDragOffset.height + value.translation.height
                                         )
-                                        dragOffset = newOffset
+                                        
+                                        // Calculate constraints
+                                        let baseSize = min(geometry.size.width, geometry.size.height) * 0.8
+                                        let currentSize = baseSize * zoomScale
+                                        let maxOffsetX = abs(geometry.size.width - currentSize) / 2
+                                        let maxOffsetY = abs(geometry.size.height - currentSize) / 2
+                                        
+                                        dragOffset = CGSize(
+                                            width: min(max(tentativeOffset.width, -maxOffsetX), maxOffsetX),
+                                            height: min(max(tentativeOffset.height, -maxOffsetY), maxOffsetY)
+                                        )
                                     }
                                     .onEnded { value in
                                         lastDragOffset = dragOffset
@@ -289,6 +299,17 @@ private struct IconPreviewArea: View {
                                             lastZoomScale = value
                                             let newScale = zoomScale * delta
                                             zoomScale = min(max(newScale, 0.1), 5.0)
+                                            
+                                            // Re-clamp offset if we zoom out
+                                            let baseSize = min(geometry.size.width, geometry.size.height) * 0.8
+                                            let currentSize = baseSize * zoomScale
+                                            let maxOffsetX = abs(geometry.size.width - currentSize) / 2
+                                            let maxOffsetY = abs(geometry.size.height - currentSize) / 2
+                                            
+                                            dragOffset = CGSize(
+                                                width: min(max(dragOffset.width, -maxOffsetX), maxOffsetX),
+                                                height: min(max(dragOffset.height, -maxOffsetY), maxOffsetY)
+                                            )
                                         }
                                     }
                                     .onEnded { _ in
