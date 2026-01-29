@@ -128,14 +128,7 @@ struct IconView: View {
                 }
             }
             
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    WindowHelper.toggleInspectorWithResize($showInspector)
-                } label: {
-                    Label("Inspector", systemImage: "slider.horizontal.3")
-                }
-                .help("Show or hide the inspector panel")
-            }
+
             
             if icon.image != nil {
                 ToolbarItem(placement: .primaryAction) {

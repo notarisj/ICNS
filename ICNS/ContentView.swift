@@ -10,39 +10,29 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var store: IconStore
     @State private var selectedIconID: Icon.ID? = nil
+    @State private var selectedCategoryID: UUID? = nil
     @State private var showDeleteConfirmation = false
     @State private var showInspector = true
     @State private var showAddIconSheet = false
+    @State private var showCategoryEditor = false
+    @State private var editingCategory: Category? = nil
     @State private var newIconName = ""
 
     var body: some View {
         NavigationSplitView {
-            // LEFT SIDEBAR
-            List(selection: $selectedIconID) {
-                ForEach(store.icons) { icon in
-                    Text(icon.name)
-                        .tag(icon.id)
-                }
-                .onMove(perform: moveIcons)
-                
-                // Deselection Area
-                Color.gray.opacity(0.01)
-                    .frame(minHeight: 500)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        selectedIconID = nil
-                    }
-                    .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets())
-            }
-            .scrollContentBackground(.hidden)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 300)
+            // LEFT SIDEBAR - Category-based navigation
+            CategorySidebarView(
+                selectedIconID: $selectedIconID,
+                selectedCategoryID: $selectedCategoryID
+            )
+            .navigationSplitViewColumnWidth(min: 200, ideal: 250, max: 350)
             .navigationTitle("Icons")
 
         } detail: {
             // MAIN CONTENT AREA
             Group {
                 if let iconIndex = store.icons.firstIndex(where: { $0.id == selectedIconID }) {
+                    // Show individual icon detail
                     IconView(
                         icon: $store.icons[iconIndex],
                         icons: $store.icons,
@@ -50,6 +40,11 @@ struct ContentView: View {
                         showAddIconSheet: $showAddIconSheet,
                         showDeleteConfirmation: $showDeleteConfirmation
                     )
+                } else if selectedCategoryID != nil || selectedIconID == nil {
+                    // Show icon grid for selected category or All Icons
+                    let displayedIcons = iconsForSelectedCategory
+                    IconGridView(icons: displayedIcons, selectedIconID: $selectedIconID)
+                        .navigationTitle(categoryTitle)
                 } else {
                     WelcomeView(showInspector: $showInspector)
                 }
@@ -57,12 +52,23 @@ struct ContentView: View {
             .navigationTitle(currentIconName)
             .toolbar {
                 ToolbarItemGroup(placement: .navigation) {
-                    Button {
-                        showAddIconSheet = true
+                    Menu {
+                        Button {
+                            showAddIconSheet = true
+                        } label: {
+                            Label("New Icon Set", systemImage: "app.dashed")
+                        }
+                        
+                        Button {
+                            editingCategory = nil
+                            showCategoryEditor = true
+                        } label: {
+                            Label("New Category", systemImage: "folder.badge.plus")
+                        }
                     } label: {
-                        Label("New Icon", systemImage: "plus")
+                        Label("Add", systemImage: "plus")
                     }
-                    .help("Create a new icon")
+                    .help("Create a new icon set or category")
                     
                     Button {
                         if selectedIconID != nil {
@@ -73,6 +79,15 @@ struct ContentView: View {
                     }
                     .help("Delete the selected icon")
                     .disabled(selectedIconID == nil)
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        WindowHelper.toggleInspectorWithResize($showInspector)
+                    } label: {
+                        Label("Inspector", systemImage: "slider.horizontal.3")
+                    }
+                    .help("Show or hide the inspector panel")
                 }
                 
 
@@ -104,6 +119,17 @@ struct ContentView: View {
 
         .sheet(isPresented: $showAddIconSheet) {
             addIconSheet
+        }
+        .sheet(isPresented: $showCategoryEditor) {
+            CategoryEditorSheet(category: $editingCategory) { category in
+                if editingCategory != nil {
+                    store.updateCategory(category)
+                } else {
+                    var newCategory = category
+                    newCategory.order = store.categories.count
+                    store.addCategory(newCategory)
+                }
+            }
         }
         .alert(isPresented: $showDeleteConfirmation) {
             Alert(
@@ -199,16 +225,7 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(nsColor: .textBackgroundColor))
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        WindowHelper.toggleInspectorWithResize($showInspector)
-                    } label: {
-                        Label("Inspector", systemImage: "slider.horizontal.3")
-                    }
-                    .help("Show or hide the inspector panel")
-                }
-            }
+
         }
     }
     
@@ -314,7 +331,6 @@ struct ContentView: View {
     }
     
 
-    
     // Add this computed property
     private var currentIconName: String {
         guard let selectedID = selectedIconID,
@@ -322,5 +338,41 @@ struct ContentView: View {
             return "ICNS"
         }
         return store.icons[iconIndex].name
+    }
+    
+    private var iconsForSelectedCategory: [Icon] {
+        // Special IDs
+        let allIconsID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+        let uncategorizedID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
+        
+        if let categoryID = selectedCategoryID {
+            // Check for special IDs
+            if categoryID == allIconsID {
+                return store.icons
+            } else if categoryID == uncategorizedID {
+                return store.icons.filter { $0.categoryID == nil }
+            } else if let category = store.categories.first(where: { $0.id == categoryID }) {
+                return store.icons(for: category)
+            }
+        }
+        // Default to uncategorized icons if no category selected
+        return store.icons.filter { $0.categoryID == nil }
+    }
+    
+    private var categoryTitle: String {
+        // Special IDs
+        let allIconsID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+        let uncategorizedID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
+        
+        if let categoryID = selectedCategoryID {
+            if categoryID == allIconsID {
+                return "All Icons"
+            } else if categoryID == uncategorizedID {
+                return "Uncategorized"
+            } else if let category = store.categories.first(where: { $0.id == categoryID }) {
+                return category.name
+            }
+        }
+        return "Uncategorized"
     }
 }

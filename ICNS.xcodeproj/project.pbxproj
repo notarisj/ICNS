@@ -25,6 +25,13 @@
 		0599CC162F113BF60002A5C0 /* ProfileEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0599CC112F113BF60002A5C0 /* ProfileEditorSheet.swift */; };
 		0599CC172F113BF60002A5C0 /* ExportProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0599CC102F113BF60002A5C0 /* ExportProfilesView.swift */; };
 		0599CC1A2F113D580002A5C0 /* WindowHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0599CC192F113D540002A5C0 /* WindowHelper.swift */; };
+		AA0000012F200000000000A1 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000002F200000000000A0 /* Category.swift */; };
+		AA0000032F200000000000A3 /* CategoryColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000022F200000000000A2 /* CategoryColor.swift */; };
+		AA0000052F200000000000A5 /* CategorySidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000042F200000000000A4 /* CategorySidebarView.swift */; };
+		AA0000072F200000000000A7 /* CategoryEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000062F200000000000A6 /* CategoryEditorSheet.swift */; };
+		AA0000092F200000000000A9 /* SFSymbolPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000082F200000000000A8 /* SFSymbolPickerView.swift */; };
+		AA00000B2F200000000000AB /* ColorPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000A2F200000000000AA /* ColorPickerView.swift */; };
+		AA00000D2F200000000000AD /* IconGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000C2F200000000000AC /* IconGridView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +74,13 @@
 		0599CC112F113BF60002A5C0 /* ProfileEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditorSheet.swift; sourceTree = "<group>"; };
 		0599CC122F113BF60002A5C0 /* ProfilePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePicker.swift; sourceTree = "<group>"; };
 		0599CC192F113D540002A5C0 /* WindowHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowHelper.swift; sourceTree = "<group>"; };
+		AA0000002F200000000000A0 /* Category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Category.swift; sourceTree = "<group>"; };
+		AA0000022F200000000000A2 /* CategoryColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryColor.swift; sourceTree = "<group>"; };
+		AA0000042F200000000000A4 /* CategorySidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySidebarView.swift; sourceTree = "<group>"; };
+		AA0000062F200000000000A6 /* CategoryEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryEditorSheet.swift; sourceTree = "<group>"; };
+		AA0000082F200000000000A8 /* SFSymbolPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFSymbolPickerView.swift; sourceTree = "<group>"; };
+		AA00000A2F200000000000AA /* ColorPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerView.swift; sourceTree = "<group>"; };
+		AA00000C2F200000000000AC /* IconGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconGridView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,6 +147,13 @@
 				0572ED392B802E2900B9A2EB /* Preview Content */,
 				05586F402BEA377300BD75E7 /* NSImage+Extensions.swift */,
 				0549D61D2D2BEA94000C3808 /* InspectorView.swift */,
+				AA0000002F200000000000A0 /* Category.swift */,
+				AA0000022F200000000000A2 /* CategoryColor.swift */,
+				AA0000042F200000000000A4 /* CategorySidebarView.swift */,
+				AA0000062F200000000000A6 /* CategoryEditorSheet.swift */,
+				AA0000082F200000000000A8 /* SFSymbolPickerView.swift */,
+				AA00000A2F200000000000AA /* ColorPickerView.swift */,
+				AA00000C2F200000000000AC /* IconGridView.swift */,
 			);
 			path = ICNS;
 			sourceTree = "<group>";
@@ -305,6 +326,13 @@
 				0599CC152F113BF60002A5C0 /* ExportProfile.swift in Sources */,
 				0599CC162F113BF60002A5C0 /* ProfileEditorSheet.swift in Sources */,
 				0599CC172F113BF60002A5C0 /* ExportProfilesView.swift in Sources */,
+				AA0000012F200000000000A1 /* Category.swift in Sources */,
+				AA0000032F200000000000A3 /* CategoryColor.swift in Sources */,
+				AA0000052F200000000000A5 /* CategorySidebarView.swift in Sources */,
+				AA0000072F200000000000A7 /* CategoryEditorSheet.swift in Sources */,
+				AA0000092F200000000000A9 /* SFSymbolPickerView.swift in Sources */,
+				AA00000B2F200000000000AB /* ColorPickerView.swift in Sources */,
+				AA00000D2F200000000000AD /* IconGridView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

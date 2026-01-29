@@ -14,6 +14,7 @@ struct Icon: Hashable, Codable, Identifiable {
     var image: Data?
     var outputDirectory: String?
     var selectedProfileID: UUID?
+    var categoryID: UUID?
     
     init(name: String, image: NSImage?, outputDirectory: URL?) {
         self.id = UUID()
