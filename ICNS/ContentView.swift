@@ -48,6 +48,7 @@ struct ContentView: View {
                         showAddIconSheet: $showAddIconSheet,
                         showDeleteConfirmation: $showDeleteConfirmation
                     )
+                    .ignoresSafeArea()
                 } else if selectedCategoryID != nil || selectedIconID == nil {
                     // Show icon grid for selected category or All Icons
                     let displayedIcons = iconsForSelectedCategory

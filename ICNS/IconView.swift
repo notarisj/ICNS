@@ -39,8 +39,9 @@ struct IconView: View {
                 },
                 onRequestImageSelection: selectImage
             )
+            .id(icon.id) // Force reset on icon change
         }
-        .padding()
+
         .alert(isPresented: $showAlert) {
             Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
@@ -241,7 +242,7 @@ struct IconView: View {
 
 // MARK: - Icon Preview Area
 
-private struct IconPreviewArea: View, Equatable {
+private struct IconPreviewArea: View {
     let nsImage: NSImage?
     let showImageBorder: Bool
     let onImageDropped: (Data) -> Void
@@ -249,15 +250,12 @@ private struct IconPreviewArea: View, Equatable {
     
     @State private var isDropTargeted = false
     
+    
     // Zoom & Pan State
     @State private var zoomScale: CGFloat = 1.0
     @State private var lastZoomScale: CGFloat = 1.0
     @State private var dragOffset: CGSize = .zero
     @State private var lastDragOffset: CGSize = .zero
-    
-    static func == (lhs: IconPreviewArea, rhs: IconPreviewArea) -> Bool {
-        lhs.nsImage === rhs.nsImage && lhs.showImageBorder == rhs.showImageBorder
-    }
     
     var body: some View {
         GeometryReader { geometry in
@@ -286,9 +284,12 @@ private struct IconPreviewArea: View, Equatable {
                             .gesture(
                                 MagnificationGesture()
                                     .onChanged { value in
-                                        let delta = value / lastZoomScale
-                                        lastZoomScale = value
-                                        zoomScale *= delta
+                                        if lastZoomScale != 0 {
+                                            let delta = value / lastZoomScale
+                                            lastZoomScale = value
+                                            let newScale = zoomScale * delta
+                                            zoomScale = min(max(newScale, 0.1), 5.0)
+                                        }
                                     }
                                     .onEnded { _ in
                                         lastZoomScale = 1.0
@@ -316,6 +317,12 @@ private struct IconPreviewArea: View, Equatable {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .clipped()
+                    .onChange(of: nsImage) {
+                        zoomScale = 1.0
+                        dragOffset = .zero
+                        lastDragOffset = .zero
+                        lastZoomScale = 1.0
+                    }
                     .overlay(alignment: .bottom) {
                         if zoomScale != 1.0 || dragOffset != .zero {
                             HStack(spacing: 8) {
