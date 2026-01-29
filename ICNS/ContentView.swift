@@ -18,6 +18,7 @@ struct ContentView: View {
     @State private var editingCategory: Category? = nil
 
     @State private var newIconName = ""
+    @State private var newIconCategory: UUID? = nil // State for selected category
     @State private var didNavigateFromGrid = false
 
     var body: some View {
@@ -82,6 +83,7 @@ struct ContentView: View {
                     
                     Menu {
                         Button {
+                            newIconCategory = selectedCategoryID // Default to current category
                             showAddIconSheet = true
                         } label: {
                             Label("New Icon Set", systemImage: "app.dashed")
@@ -155,6 +157,7 @@ struct ContentView: View {
             )
         }
         .onReceive(NotificationCenter.default.publisher(for: .newIconSet)) { _ in
+            newIconCategory = selectedCategoryID
             showAddIconSheet = true
         }
         .onReceive(NotificationCenter.default.publisher(for: .newCategory)) { _ in
@@ -205,6 +208,20 @@ struct ContentView: View {
                 TextField("e.g. AppIcon", text: $newIconName)
                     .textFieldStyle(.roundedBorder)
                     .font(.body)
+                    
+                Text("Category")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fontWeight(.medium)
+                    .padding(.top, 4)
+                
+                Picker("Category", selection: $newIconCategory) {
+                    Text("Uncategorized").tag(UUID?.none)
+                    ForEach(store.categories) { category in
+                        Text(category.name).tag(Optional(category.id))
+                    }
+                }
+                .labelsHidden()
             }
             .padding(.horizontal)
             
@@ -213,13 +230,15 @@ struct ContentView: View {
                 Button("Cancel", role: .cancel) {
                     showAddIconSheet = false
                     newIconName = ""
+                    newIconCategory = nil
                 }
                 .keyboardShortcut(.cancelAction)
                 
                 Button("Create") {
-                    addIcon(named: newIconName)
+                    addIcon(named: newIconName, categoryID: newIconCategory)
                     showAddIconSheet = false
                     newIconName = ""
+                    newIconCategory = nil
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(newIconName.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -231,7 +250,7 @@ struct ContentView: View {
         .frame(width: 350)
     }
     
-    private func addIcon(named name: String) {
+    private func addIcon(named name: String, categoryID: UUID?) {
         let trimmedName = name.trimmingCharacters(in: .whitespaces)
         if trimmedName.isEmpty { return }
         
@@ -242,7 +261,8 @@ struct ContentView: View {
             counter += 1
         }
         
-        let newIcon = Icon(name: finalName, image: nil as NSImage?, outputDirectory: nil as URL?)
+        var newIcon = Icon(name: finalName, image: nil as NSImage?, outputDirectory: nil as URL?)
+        newIcon.categoryID = categoryID
         store.icons.append(newIcon)
         selectedIconID = newIcon.id
     }
