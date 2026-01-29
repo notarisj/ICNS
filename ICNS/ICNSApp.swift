@@ -19,5 +19,8 @@ struct ICNSApp: App {
                 .environmentObject(profileStore)
         }
         .defaultSize(width: 900, height: 600)
+        .commands {
+            MenuCommands()
+        }
     }
 }

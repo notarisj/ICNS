@@ -26,6 +26,7 @@
 		0599CC172F113BF60002A5C0 /* ExportProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0599CC102F113BF60002A5C0 /* ExportProfilesView.swift */; };
 		0599CC1A2F113D580002A5C0 /* WindowHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0599CC192F113D540002A5C0 /* WindowHelper.swift */; };
 		05B6ECC32F2BAC6F005F2139 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05B6ECC22F2BAC6B005F2139 /* WelcomeView.swift */; };
+		05B6ECC72F2BDA0E005F2139 /* MenuCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05B6ECC62F2BDA0A005F2139 /* MenuCommands.swift */; };
 		AA0000012F200000000000A1 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000002F200000000000A0 /* Category.swift */; };
 		AA0000032F200000000000A3 /* CategoryColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000022F200000000000A2 /* CategoryColor.swift */; };
 		AA0000052F200000000000A5 /* CategorySidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000042F200000000000A4 /* CategorySidebarView.swift */; };
@@ -76,6 +77,7 @@
 		0599CC122F113BF60002A5C0 /* ProfilePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePicker.swift; sourceTree = "<group>"; };
 		0599CC192F113D540002A5C0 /* WindowHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowHelper.swift; sourceTree = "<group>"; };
 		05B6ECC22F2BAC6B005F2139 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		05B6ECC62F2BDA0A005F2139 /* MenuCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuCommands.swift; sourceTree = "<group>"; };
 		AA0000002F200000000000A0 /* Category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Category.swift; sourceTree = "<group>"; };
 		AA0000022F200000000000A2 /* CategoryColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryColor.swift; sourceTree = "<group>"; };
 		AA0000042F200000000000A4 /* CategorySidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySidebarView.swift; sourceTree = "<group>"; };
@@ -133,6 +135,7 @@
 		0572ED322B802E2700B9A2EB /* ICNS */ = {
 			isa = PBXGroup;
 			children = (
+				05B6ECC62F2BDA0A005F2139 /* MenuCommands.swift */,
 				05B6ECC22F2BAC6B005F2139 /* WelcomeView.swift */,
 				0599CC192F113D540002A5C0 /* WindowHelper.swift */,
 				0599CC0F2F113BF60002A5C0 /* ExportProfile.swift */,
@@ -332,6 +335,7 @@
 				05B6ECC32F2BAC6F005F2139 /* WelcomeView.swift in Sources */,
 				AA0000012F200000000000A1 /* Category.swift in Sources */,
 				AA0000032F200000000000A3 /* CategoryColor.swift in Sources */,
+				05B6ECC72F2BDA0E005F2139 /* MenuCommands.swift in Sources */,
 				AA0000052F200000000000A5 /* CategorySidebarView.swift in Sources */,
 				AA0000072F200000000000A7 /* CategoryEditorSheet.swift in Sources */,
 				AA0000092F200000000000A9 /* SFSymbolPickerView.swift in Sources */,

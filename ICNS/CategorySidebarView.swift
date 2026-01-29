@@ -31,35 +31,13 @@ struct CategorySidebarView: View {
     private let uncategorizedID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
     
     var body: some View {
-        List(selection: Binding(
-            get: { selectedIconID ?? selectedCategoryID },
-            set: { newValue in
-                if let uuid = newValue {
-                    // Check if it's an icon or category
-                    if store.icons.contains(where: { $0.id == uuid }) {
-                        selectedIconID = uuid
-                    } else {
-                        selectedIconID = nil
-                        selectedCategoryID = uuid
-                    }
-                } else {
-                    selectedIconID = nil
-                    selectedCategoryID = nil
-                }
-            }
-        )) {
+        List(selection: selectionBinding) {
             // "All Icons" - simple clickable row (no nested icons)
             allIconsRow
             
             // Categories section with Uncategorized first, then custom categories
             Section {
                 // Custom categories
-                let filteredCategories = store.categories.sorted(by: { $0.order < $1.order }).filter { category in
-                    if searchText.isEmpty { return true }
-                    if category.name.localizedCaseInsensitiveContains(searchText) { return true }
-                    return store.icons(for: category).contains { $0.name.localizedCaseInsensitiveContains(searchText) }
-                }
-                
                 if !filteredCategories.isEmpty {
                     ForEach(filteredCategories) { category in
                         categoryRow(for: category)
@@ -134,6 +112,11 @@ struct CategorySidebarView: View {
         } message: {
             Text("Enter a new name for this icon.")
         }
+
+
+    .focusedValue(\.editCategoryAction, editCategoryAction)
+    .focusedValue(\.renameItemAction, renameItemAction)
+    .focusedValue(\.deleteItemAction, deleteItemAction)
     }
     
     // MARK: - All Icons Row
@@ -306,6 +289,94 @@ struct CategorySidebarView: View {
     
     // MARK: - Helper Functions
     
+    // MARK: - Focused Value Actions
+    
+    // MARK: - Helper Computeds
+    
+    private var selectionBinding: Binding<UUID?> {
+        Binding(
+            get: { selectedIconID ?? selectedCategoryID },
+            set: { newValue in
+                if let uuid = newValue {
+                    if store.icons.contains(where: { $0.id == uuid }) {
+                        selectedIconID = uuid
+                    } else {
+                        selectedIconID = nil
+                        selectedCategoryID = uuid
+                    }
+                } else {
+                    selectedIconID = nil
+                    selectedCategoryID = nil
+                }
+            }
+        )
+    }
+
+    private var filteredCategories: [Category] {
+        store.categories.sorted(by: { $0.order < $1.order }).filter { category in
+            if searchText.isEmpty { return true }
+            if category.name.localizedCaseInsensitiveContains(searchText) { return true }
+            return store.icons(for: category).contains { $0.name.localizedCaseInsensitiveContains(searchText) }
+        }
+    }
+
+    private var editCategoryAction: (() -> Void)? {
+        if selectedIconID == nil,
+           let categoryID = selectedCategoryID,
+           let category = store.categories.first(where: { $0.id == categoryID }) {
+            let allIconsID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+            let uncategorizedID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
+            
+            if categoryID != allIconsID && categoryID != uncategorizedID {
+                return {
+                    editingCategory = category
+                    showCategoryEditor = true
+                }
+            }
+        }
+        return nil
+    }
+    
+    private var renameItemAction: (() -> Void)? {
+        if let iconID = selectedIconID,
+           let icon = store.icons.first(where: { $0.id == iconID }) {
+            return { promptRename(icon) }
+        } else if selectedIconID == nil,
+                  let categoryID = selectedCategoryID,
+                  let category = store.categories.first(where: { $0.id == categoryID }) {
+            let allIconsID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+            let uncategorizedID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
+            
+            if categoryID != allIconsID && categoryID != uncategorizedID {
+                return {
+                    editingCategory = category
+                    showCategoryEditor = true
+                }
+            }
+        }
+        return nil
+    }
+    
+    private var deleteItemAction: (() -> Void)? {
+        if let iconID = selectedIconID,
+           let icon = store.icons.first(where: { $0.id == iconID }) {
+            return { promptDelete(icon) }
+        } else if selectedIconID == nil,
+                  let categoryID = selectedCategoryID,
+                  let category = store.categories.first(where: { $0.id == categoryID }) {
+            let allIconsID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+            let uncategorizedID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
+            
+            if categoryID != allIconsID && categoryID != uncategorizedID {
+                return {
+                    categoryToDelete = category
+                    showDeleteConfirmation = true
+                }
+            }
+        }
+        return nil
+    }
+
     private func moveCategories(from source: IndexSet, to destination: Int) {
         store.moveCategories(from: source, to: destination)
     }

@@ -154,6 +154,13 @@ struct ContentView: View {
                 secondaryButton: .cancel()
             )
         }
+        .onReceive(NotificationCenter.default.publisher(for: .newIconSet)) { _ in
+            showAddIconSheet = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .newCategory)) { _ in
+            editingCategory = nil
+            showCategoryEditor = true
+        }
     }
     
     // MARK: - Helper Views

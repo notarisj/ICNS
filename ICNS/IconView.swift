@@ -250,7 +250,6 @@ private struct IconPreviewArea: View {
     
     @State private var isDropTargeted = false
     
-    
     // Zoom & Pan State
     @State private var zoomScale: CGFloat = 1.0
     @State private var lastZoomScale: CGFloat = 1.0
@@ -262,6 +261,7 @@ private struct IconPreviewArea: View {
             ZStack {
                 // Transparent background to capture clicks/drags anywhere
                 Color.clear
+                    .contentShape(Rectangle())
                 
                 if let img = nsImage {
                     ZStack {
