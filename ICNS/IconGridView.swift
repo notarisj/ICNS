@@ -17,10 +17,10 @@ struct IconGridView: View {
     ]
     
     var body: some View {
-        ScrollView {
-            if icons.isEmpty {
-                emptyState
-            } else {
+        if icons.isEmpty {
+            WelcomeView(showInspector: $showInspector)
+        } else {
+            ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(icons) { icon in
                         IconGridItem(icon: icon, isSelected: selectedIconID == icon.id)
@@ -31,37 +31,19 @@ struct IconGridView: View {
                 }
                 .padding()
             }
-        }
-
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    WindowHelper.toggleInspectorWithResize($showInspector)
-                } label: {
-                    Label("Inspector", systemImage: "slider.horizontal.3")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        WindowHelper.toggleInspectorWithResize($showInspector)
+                    } label: {
+                        Label("Inspector", systemImage: "slider.horizontal.3")
+                    }
+                    .help("Show or hide the inspector panel")
                 }
-                .help("Show or hide the inspector panel")
             }
         }
     }
-    
-    private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "tray")
-                .font(.system(size: 48))
-                .foregroundStyle(.tertiary)
-            
-            Text("No Icons")
-                .font(.title3)
-                .fontWeight(.medium)
-                .foregroundStyle(.secondary)
-            
-            Text("Create a new icon to get started")
-                .font(.body)
-                .foregroundStyle(.tertiary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
+
 }
 
 struct IconGridItem: View {

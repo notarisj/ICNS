@@ -11,6 +11,7 @@ struct InspectorView: View {
     @Binding var icon: Icon
     @AppStorage("showImageBorder") private var showImageBorder = true
     @EnvironmentObject var profileStore: ProfileStore
+    @EnvironmentObject var iconStore: IconStore
     
     @State private var showProfilesManagement = false
     
@@ -18,6 +19,13 @@ struct InspectorView: View {
         Form {
             Section("Identity") {
                 TextField("Name", text: $icon.name)
+                
+                Picker("Category", selection: $icon.categoryID) {
+                    Text("None").tag(nil as UUID?)
+                    ForEach(iconStore.categories) { category in
+                        Text(category.name).tag(category.id as UUID?)
+                    }
+                }
             }
             
             Section("Export Settings") {
