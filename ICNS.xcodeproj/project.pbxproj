@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -87,6 +87,10 @@
 		AA00000C2F200000000000AC /* IconGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconGridView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		05B6ECCD2F2C06DE005F2139 /* Services */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Services; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		0572ED2D2B802E2700B9A2EB /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -135,6 +139,7 @@
 		0572ED322B802E2700B9A2EB /* ICNS */ = {
 			isa = PBXGroup;
 			children = (
+				05B6ECCD2F2C06DE005F2139 /* Services */,
 				05B6ECC62F2BDA0A005F2139 /* MenuCommands.swift */,
 				05B6ECC22F2BAC6B005F2139 /* WelcomeView.swift */,
 				0599CC192F113D540002A5C0 /* WindowHelper.swift */,
@@ -203,6 +208,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				05B6ECCD2F2C06DE005F2139 /* Services */,
 			);
 			name = ICNS;
 			productName = ICNS;

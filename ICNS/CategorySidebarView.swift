@@ -55,6 +55,9 @@ struct CategorySidebarView: View {
             }
         }
         .searchable(text: $searchText, isPresented: $isSearchPresented, placement: .sidebar, prompt: "Search")
+        .onChange(of: searchText) { newValue in
+            store.updateSearchText(newValue)
+        }
         .background {
             Button("Find") {
                 isSearchPresented = true
@@ -146,10 +149,11 @@ struct CategorySidebarView: View {
     // MARK: - Uncategorized Section
     
     private var uncategorizedSection: some View {
-        // Include icons that are truly uncategorized OR have an invalid category ID (orphans)
-        let uncategorizedIcons = store.icons.filter { icon in
-            let isUncategorized = icon.categoryID == nil || !store.categories.contains(where: { $0.id == icon.categoryID })
-            return isUncategorized && (searchText.isEmpty || icon.name.localizedCaseInsensitiveContains(searchText))
+        // Use searchedIcons from store and ignore category ID checks if we are searching (since we want global results?)
+        // Wait, "Uncategorized" section should strictly show uncategorized icons matching search.
+        
+        let uncategorizedIcons = store.searchedIcons.filter { icon in
+             icon.categoryID == nil || !store.categories.contains(where: { $0.id == icon.categoryID })
         }
         
         // Hide section if searching and no matches
@@ -211,9 +215,8 @@ struct CategorySidebarView: View {
     // MARK: - Category Row
     
     private func categoryRow(for category: Category) -> some View {
-        let categoryIcons = store.icons(for: category).filter { 
-            searchText.isEmpty || $0.name.localizedCaseInsensitiveContains(searchText)
-        }
+        // Use filtered set from store
+        let categoryIcons = store.searchedIcons.filter { $0.categoryID == category.id }
         
         return DisclosureGroup(
             isExpanded: Binding(
@@ -243,8 +246,8 @@ struct CategorySidebarView: View {
             label: {
                 HStack(spacing: 8) {
                     Image(systemName: category.iconName)
-                        .foregroundStyle(category.color.color)
-                        .font(.system(size: 16))
+                    .foregroundStyle(category.color.color)
+                    .font(.system(size: 16))
                     
                     Text(category.name)
                         .font(.body)
@@ -316,7 +319,7 @@ struct CategorySidebarView: View {
         store.categories.sorted(by: { $0.order < $1.order }).filter { category in
             if searchText.isEmpty { return true }
             if category.name.localizedCaseInsensitiveContains(searchText) { return true }
-            return store.icons(for: category).contains { $0.name.localizedCaseInsensitiveContains(searchText) }
+            return store.searchedIcons.contains { $0.categoryID == category.id }
         }
     }
 
@@ -406,13 +409,22 @@ private struct SidebarIconRow: View, Equatable {
     
     var body: some View {
         HStack(spacing: 8) {
-            if let imageData = icon.image,
-               let nsImage = NSImage(data: imageData) {
-                Image(nsImage: nsImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 16, height: 16)
-                    .cornerRadius(3)
+            if let imageURL = icon.imageURL {
+                AsyncImage(url: imageURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    case .failure, .empty:
+                        // Fallback or loading state (keep simple for sidebar)
+                        Color.gray.opacity(0.3)
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+                .frame(width: 16, height: 16)
+                .cornerRadius(3)
             } else {
                 Image(systemName: "app.dashed")
                     .font(.system(size: 14))

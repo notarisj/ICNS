@@ -60,12 +60,24 @@ struct IconGridItem: View {
                             .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
                     )
                 
-                if let imageData = icon.image,
-                   let nsImage = NSImage(data: imageData) {
-                    Image(nsImage: nsImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 64, height: 64)
+                if let imageURL = icon.imageURL {
+                    AsyncImage(url: imageURL) { phase in
+                        switch phase {
+                        case .empty:
+                             ProgressView()
+                                .controlSize(.small)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                        case .failure:
+                            Image(systemName: "exclamationmark.triangle")
+                                .foregroundStyle(.secondary)
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                    .frame(width: 64, height: 64)
                 } else {
                     Image(systemName: "app.dashed")
                         .font(.system(size: 48))

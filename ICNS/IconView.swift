@@ -134,36 +134,26 @@ struct IconView: View {
         
         // Get selected profile or use default
         let profile = profileStore.getProfile(byID: icon.selectedProfileID)
-        let sizes = profile.sizes
         
-        // Create a new .iconset folder
-        let iconsetFolder = outputDirectoryURL.appendingPathComponent("\(icon.name).iconset")
-        do {
-            try FileManager.default.createDirectory(at: iconsetFolder, withIntermediateDirectories: true, attributes: nil)
-        } catch {
-            self.alertMessage = "Error creating .iconset folder: \(error)"
-            self.alertTitle = "Error"
-            self.showAlert = true
-            return
-        }
-        
-        // Generate PNG files
-        for size in sizes {
-            for scale in [1, 2] {
-                let scaledSize = NSSize(width: size*scale, height: size*scale)
-                let newImage = image.resizeImage(to: scaledSize)
-                let scaleSuffix = scale == 2 ? "@2x" : ""
-                let filename = "icon_\(size)x\(size)\(scaleSuffix).png"
-                let fileURL = iconsetFolder.appendingPathComponent(filename)
-                newImage.saveImage(as: NSBitmapImageRep.FileType.png, to: fileURL)
-            }
-        }
+        let result = ImageGenerationService.shared.generateIcons(
+            from: image,
+            outputDirectory: outputDirectoryURL,
+            profile: profile,
+            iconName: icon.name
+        )
         
         outputDirectoryURL.stopAccessingSecurityScopedResource()
         
-        self.alertMessage = "Icons have been successfully created at \(iconsetFolder.path)!"
-        self.alertTitle = "Success"
-        self.iconsGenerated = true
+        switch result {
+        case .success(let folderURL):
+            self.alertMessage = "Icons have been successfully created at \(folderURL.path)!"
+            self.alertTitle = "Success"
+            self.iconsGenerated = true
+        case .failure(let error):
+            self.alertMessage = "Error creating icons: \(error.localizedDescription)"
+            self.alertTitle = "Error"
+        }
+        
         self.showAlert = true
     }
     
@@ -181,44 +171,20 @@ struct IconView: View {
             return
         }
         
-        let iconsetFolder = outputDirectoryURL.appendingPathComponent("\(icon.name).iconset")
+        let result = ImageGenerationService.shared.generateICNS(from: icon.name, inside: outputDirectoryURL)
         
-        // Convert the .iconset folder to an .icns file
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/iconutil")
-        process.arguments = ["-c", "icns", iconsetFolder.path]
+        outputDirectoryURL.stopAccessingSecurityScopedResource()
         
-        let outPipe = Pipe()
-        let errorPipe = Pipe()
-        process.standardOutput = outPipe
-        process.standardError = errorPipe
-        
-        do {
-            try process.run()
-        } catch {
-            self.alertMessage = "Failed to run iconutil process."
-            self.alertTitle = "Error"
-            self.showAlert = true
-            outputDirectoryURL.stopAccessingSecurityScopedResource()
-            return
-        }
-        
-        process.waitUntilExit()
-        
-        let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
-        let errorOutput = String(data: errorData, encoding: .utf8)
-        
-        if process.terminationStatus == 0 {
-            let icnsFilePath = outputDirectoryURL.appendingPathComponent("\(icon.name).icns").path
-            self.alertMessage = "ICNS file has been successfully created at \(icnsFilePath)!"
-            self.alertTitle = "Success"
-        } else {
-            self.alertMessage = "Failed to create ICNS file. Error: \(errorOutput ?? "Unknown error")"
+        switch result {
+        case .success(let icnsURL):
+             self.alertMessage = "ICNS file has been successfully created at \(icnsURL.path)!"
+             self.alertTitle = "Success"
+        case .failure(let error):
+            self.alertMessage = "Failed to create ICNS file. Error: \(error.localizedDescription)"
             self.alertTitle = "Error"
         }
         
         self.showAlert = true
-        outputDirectoryURL.stopAccessingSecurityScopedResource()
     }
     
     func clearImage() {

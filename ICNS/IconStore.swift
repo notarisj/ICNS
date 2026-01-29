@@ -12,7 +12,19 @@ class IconStore: ObservableObject {
     @Published var icons: [Icon] = [] {
         didSet {
             saveIcons()
+            updateFilteredIcons()
         }
+    }
+    
+    // Search Optimization: storing filtered results
+    @Published var filteredIcons: [Icon] = []
+    
+    // Current filter state
+    var currentCategory: Category? = nil {
+        didSet { updateFilteredIcons() }
+    }
+    var currentSearchText: String = "" {
+        didSet { updateFilteredIcons() }
     }
     
     @Published var categories: [Category] = [] {
@@ -25,6 +37,7 @@ class IconStore: ObservableObject {
         loadIcons()
         loadCategories()
         ensureDefaultCategory()
+        migrateIcons() // Migrate legacy images to disk
     }
     
     // MARK: - Persistence
@@ -46,6 +59,24 @@ class IconStore: ObservableObject {
             UserDefaults.standard.set(iconsData, forKey: "icons")
         } catch {
             print("Error encoding icons: \(error)")
+        }
+    }
+    
+    private func migrateIcons() {
+        var migrationNeeded = false
+        
+        for index in icons.indices {
+            if let legacyData = icons[index].legacyImageData {
+                // Trigger the setter to save to disk and clear legacy
+                let dataToSave = legacyData
+                icons[index].image = dataToSave 
+                migrationNeeded = true
+                print("Migrated icon: \(icons[index].name)")
+            }
+        }
+        
+        if migrationNeeded {
+            saveIcons() // Save the updated structure (ids instead of data)
         }
     }
     
@@ -86,11 +117,15 @@ class IconStore: ObservableObject {
     
     func removeIcon(at index: Int) {
         guard icons.indices.contains(index) else { return }
+        // Clean up image file
+        icons[index].image = nil // This triggers delete in setter
         icons.remove(at: index)
     }
     
     func removeIcon(withID id: UUID) {
         if let index = icons.firstIndex(where: { $0.id == id }) {
+            // Clean up image file
+            icons[index].image = nil // This triggers delete in setter
             icons.remove(at: index)
         }
     }
@@ -138,8 +173,47 @@ class IconStore: ObservableObject {
         }
     }
     
-    // MARK: - Icon Filtering
+    // Filter by Searching Text Only (for Sidebar)
+    @Published var searchedIcons: [Icon] = []
     
+    // MARK: - Icon Filtering & Updates
+    
+    func updateSearchText(_ text: String) {
+        currentSearchText = text
+    }
+    
+    func selectCategory(_ category: Category?) {
+        currentCategory = category
+    }
+    
+    private func updateFilteredIcons() {
+        var result = icons
+        
+        // Update searchedIcons (Global search for sidebar)
+        if !currentSearchText.isEmpty {
+            self.searchedIcons = icons.filter { $0.name.localizedCaseInsensitiveContains(currentSearchText) }
+        } else {
+            self.searchedIcons = icons
+        }
+        
+        // Filter by Category (for Main View)
+        if let category = currentCategory {
+            if category.name == "Uncategorized" {
+                result = result.filter { $0.categoryID == nil }
+            } else {
+                result = result.filter { $0.categoryID == category.id }
+            }
+        }
+        
+        // Filter by Search Text (for Main View as well)
+        if !currentSearchText.isEmpty {
+            result = result.filter { $0.name.localizedCaseInsensitiveContains(currentSearchText) }
+        }
+        
+        self.filteredIcons = result
+    }
+    
+    // Helper to get icons for a specific category (used by sidebar, separate from main selection)
     func icons(for category: Category?) -> [Icon] {
         guard let category = category else {
             return icons
@@ -172,3 +246,4 @@ class IconStore: ObservableObject {
         }
     }
 }
+
