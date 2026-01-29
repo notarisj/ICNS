@@ -10,7 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var store: IconStore
     @State private var selectedIconID: Icon.ID? = nil
-    @State private var selectedCategoryID: UUID? = nil
+    @State private var selectedCategoryID: UUID? = Category.allIconsID
     @State private var showDeleteConfirmation = false
     @State private var showInspector = true
     @State private var showAddIconSheet = false
@@ -288,7 +288,6 @@ struct ContentView: View {
         }
     }
     
-
     // Add this computed property
     private var currentIconName: String {
         guard let selectedID = selectedIconID,
@@ -299,38 +298,29 @@ struct ContentView: View {
     }
     
     private var iconsForSelectedCategory: [Icon] {
-        // Special IDs
-        let allIconsID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
-        let uncategorizedID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
-        
         if let categoryID = selectedCategoryID {
-            // Check for special IDs
-            if categoryID == allIconsID {
+            if categoryID == Category.allIconsID {
                 return store.icons
-            } else if categoryID == uncategorizedID {
+            } else if categoryID == Category.uncategorizedID {
                 return store.icons.filter { $0.categoryID == nil }
             } else if let category = store.categories.first(where: { $0.id == categoryID }) {
                 return store.icons(for: category)
             }
         }
-        // Default to uncategorized icons if no category selected
-        return store.icons.filter { $0.categoryID == nil }
+        // Default to All Icons
+        return store.icons
     }
     
     private var categoryTitle: String {
-        // Special IDs
-        let allIconsID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
-        let uncategorizedID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
-        
         if let categoryID = selectedCategoryID {
-            if categoryID == allIconsID {
+            if categoryID == Category.allIconsID {
                 return "All Icons"
-            } else if categoryID == uncategorizedID {
+            } else if categoryID == Category.uncategorizedID {
                 return "Uncategorized"
             } else if let category = store.categories.first(where: { $0.id == categoryID }) {
                 return category.name
             }
         }
-        return "Uncategorized"
+        return "All Icons"
     }
 }

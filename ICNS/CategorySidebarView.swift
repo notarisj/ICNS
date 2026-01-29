@@ -27,8 +27,8 @@ struct CategorySidebarView: View {
     @State private var newIconName = ""
     
     // Special IDs for All Icons and Uncategorized
-    private let allIconsID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
-    private let uncategorizedID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
+    private let allIconsID = Category.allIconsID
+    private let uncategorizedID = Category.uncategorizedID
     
     var body: some View {
         List(selection: selectionBinding) {
@@ -322,13 +322,13 @@ struct CategorySidebarView: View {
             return store.searchedIcons.contains { $0.categoryID == category.id }
         }
     }
-
+    
     private var editCategoryAction: (() -> Void)? {
         if selectedIconID == nil,
            let categoryID = selectedCategoryID,
            let category = store.categories.first(where: { $0.id == categoryID }) {
-            let allIconsID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
-            let uncategorizedID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
+            let allIconsID = Category.allIconsID
+            let uncategorizedID = Category.uncategorizedID
             
             if categoryID != allIconsID && categoryID != uncategorizedID {
                 return {
@@ -347,8 +347,8 @@ struct CategorySidebarView: View {
         } else if selectedIconID == nil,
                   let categoryID = selectedCategoryID,
                   let category = store.categories.first(where: { $0.id == categoryID }) {
-            let allIconsID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
-            let uncategorizedID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
+            let allIconsID = Category.allIconsID
+            let uncategorizedID = Category.uncategorizedID
             
             if categoryID != allIconsID && categoryID != uncategorizedID {
                 return {
@@ -367,8 +367,8 @@ struct CategorySidebarView: View {
         } else if selectedIconID == nil,
                   let categoryID = selectedCategoryID,
                   let category = store.categories.first(where: { $0.id == categoryID }) {
-            let allIconsID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
-            let uncategorizedID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
+            let allIconsID = Category.allIconsID
+            let uncategorizedID = Category.uncategorizedID
             
             if categoryID != allIconsID && categoryID != uncategorizedID {
                 return {
