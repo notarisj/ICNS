@@ -165,4 +165,10 @@ class IconStore: ObservableObject {
         }
         return icons.filter { $0.categoryID == category.id }.count
     }
+    
+    func renameIcon(_ icon: Icon, to newName: String) {
+        if let index = icons.firstIndex(where: { $0.id == icon.id }) {
+            icons[index].name = newName
+        }
+    }
 }

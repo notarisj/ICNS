@@ -16,13 +16,21 @@ struct ContentView: View {
     @State private var showAddIconSheet = false
     @State private var showCategoryEditor = false
     @State private var editingCategory: Category? = nil
+
     @State private var newIconName = ""
+    @State private var didNavigateFromGrid = false
 
     var body: some View {
         NavigationSplitView {
             // LEFT SIDEBAR - Category-based navigation
             CategorySidebarView(
-                selectedIconID: $selectedIconID,
+                selectedIconID: Binding(
+                    get: { selectedIconID },
+                    set: { 
+                        selectedIconID = $0
+                        if $0 != nil { didNavigateFromGrid = false }
+                    }
+                ),
                 selectedCategoryID: $selectedCategoryID
             )
             .navigationSplitViewColumnWidth(min: 200, ideal: 250, max: 350)
@@ -43,7 +51,17 @@ struct ContentView: View {
                 } else if selectedCategoryID != nil || selectedIconID == nil {
                     // Show icon grid for selected category or All Icons
                     let displayedIcons = iconsForSelectedCategory
-                    IconGridView(icons: displayedIcons, selectedIconID: $selectedIconID)
+                    IconGridView(
+                        icons: displayedIcons, 
+                        selectedIconID: Binding(
+                            get: { selectedIconID },
+                            set: { 
+                                selectedIconID = $0
+                                if $0 != nil { didNavigateFromGrid = true }
+                            }
+                        ),
+                        showInspector: $showInspector
+                    )
                         .navigationTitle(categoryTitle)
                 } else {
                     WelcomeView(showInspector: $showInspector)
@@ -52,6 +70,15 @@ struct ContentView: View {
             .navigationTitle(currentIconName)
             .toolbar {
                 ToolbarItemGroup(placement: .navigation) {
+                    if didNavigateFromGrid && selectedIconID != nil {
+                        Button {
+                            selectedIconID = nil
+                            didNavigateFromGrid = false
+                        } label: {
+                            Label("Back", systemImage: "chevron.left")
+                        }
+                    }
+                    
                     Menu {
                         Button {
                             showAddIconSheet = true
@@ -70,25 +97,10 @@ struct ContentView: View {
                     }
                     .help("Create a new icon set or category")
                     
-                    Button {
-                        if selectedIconID != nil {
-                            showDeleteConfirmation = true
-                        }
-                    } label: {
-                        Label("Delete Icon", systemImage: "minus")
-                    }
-                    .help("Delete the selected icon")
-                    .disabled(selectedIconID == nil)
+
                 }
                 
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        WindowHelper.toggleInspectorWithResize($showInspector)
-                    } label: {
-                        Label("Inspector", systemImage: "slider.horizontal.3")
-                    }
-                    .help("Show or hide the inspector panel")
-                }
+
                 
 
             }
@@ -224,7 +236,18 @@ struct ContentView: View {
                 .padding(.top, 16)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+
             .background(Color(nsColor: .textBackgroundColor))
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        WindowHelper.toggleInspectorWithResize($showInspector)
+                    } label: {
+                        Label("Inspector", systemImage: "slider.horizontal.3")
+                    }
+                    .help("Show or hide the inspector panel")
+                }
+            }
 
         }
     }

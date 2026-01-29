@@ -195,7 +195,7 @@ struct IconView: View {
             iconsGenerated = false
         }
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
+            ToolbarItemGroup(placement: .primaryAction) {
                 if !iconsGenerated {
                     Button(action: generateIcons) {
                         Label("Generate Icons", systemImage: "sparkles.rectangle.stack")
@@ -208,12 +208,8 @@ struct IconView: View {
                     }
                     .help("Convert the icon set to a .icns file")
                 }
-            }
             
-
-            
-            if icon.image != nil {
-                ToolbarItem(placement: .primaryAction) {
+                if icon.image != nil {
                     Button(action: {
                         showClearImageConfirmation = true
                     }) {
@@ -221,6 +217,13 @@ struct IconView: View {
                     }
                     .help("Remove the current image")
                 }
+                
+                Button {
+                    WindowHelper.toggleInspectorWithResize($showInspector)
+                } label: {
+                    Label("Inspector", systemImage: "slider.horizontal.3")
+                }
+                .help("Show or hide the inspector panel")
             }
         }
         .alert("Clear Image", isPresented: $showClearImageConfirmation) {

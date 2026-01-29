@@ -10,6 +10,7 @@ import SwiftUI
 struct IconGridView: View {
     let icons: [Icon]
     @Binding var selectedIconID: Icon.ID?
+    @Binding var showInspector: Bool
     
     let columns = [
         GridItem(.adaptive(minimum: 100, maximum: 150), spacing: 16)
@@ -29,6 +30,17 @@ struct IconGridView: View {
                     }
                 }
                 .padding()
+            }
+        }
+
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    WindowHelper.toggleInspectorWithResize($showInspector)
+                } label: {
+                    Label("Inspector", systemImage: "slider.horizontal.3")
+                }
+                .help("Show or hide the inspector panel")
             }
         }
     }
@@ -91,5 +103,5 @@ struct IconGridItem: View {
 }
 
 #Preview {
-    IconGridView(icons: [], selectedIconID: .constant(nil))
+    IconGridView(icons: [], selectedIconID: .constant(nil), showInspector: .constant(true))
 }

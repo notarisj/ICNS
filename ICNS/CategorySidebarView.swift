@@ -17,6 +17,14 @@ struct CategorySidebarView: View {
     @State private var categoryToDelete: Category? = nil
     @State private var isUncategorizedExpanded = true
     @State private var searchText = ""
+    @State private var isSearchPresented = false
+    
+    // Icon Context Menu States
+    @State private var iconToDelete: Icon? = nil
+    @State private var showIconDeleteConfirmation = false
+    @State private var iconToRename: Icon? = nil
+    @State private var showRenameIconAlert = false
+    @State private var newIconName = ""
     
     // Special IDs for All Icons and Uncategorized
     private let allIconsID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
@@ -68,7 +76,14 @@ struct CategorySidebarView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .searchable(text: $searchText, placement: .sidebar, prompt: "Search")
+        .searchable(text: $searchText, isPresented: $isSearchPresented, placement: .sidebar, prompt: "Search")
+        .background {
+            Button("Find") {
+                isSearchPresented = true
+            }
+            .keyboardShortcut("f", modifiers: .command)
+            .opacity(0)
+        }
         .scrollContentBackground(.hidden)
         .sheet(isPresented: $showCategoryEditor) {
             CategoryEditorSheet(category: $editingCategory) { category in
@@ -92,6 +107,32 @@ struct CategorySidebarView: View {
             if let category = categoryToDelete {
                 Text("Are you sure you want to delete \"\(category.name)\"? Icons in this category will be moved to Uncategorized.")
             }
+        }
+        .alert("Delete Icon", isPresented: $showIconDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                if let icon = iconToDelete {
+                    store.removeIcon(withID: icon.id)
+                    if selectedIconID == icon.id {
+                        selectedIconID = nil
+                    }
+                }
+            }
+        } message: {
+            if let icon = iconToDelete {
+                Text("Are you sure you want to delete \"\(icon.name)\"? This action cannot be undone.")
+            }
+        }
+        .alert("Rename Icon", isPresented: $showRenameIconAlert) {
+            TextField("Name", text: $newIconName)
+            Button("Cancel", role: .cancel) { }
+            Button("Rename") {
+                if let icon = iconToRename {
+                    store.renameIcon(icon, to: newIconName)
+                }
+            }
+        } message: {
+            Text("Enter a new name for this icon.")
         }
     }
     
@@ -228,25 +269,25 @@ struct CategorySidebarView: View {
                         .cornerRadius(8)
                 }
                 .tag(category.id)
+                .contextMenu {
+                    Button {
+                        editingCategory = category
+                        showCategoryEditor = true
+                    } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
+                    
+                    Divider()
+                    
+                    Button(role: .destructive) {
+                        categoryToDelete = category
+                        showDeleteConfirmation = true
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
             }
         )
-        .contextMenu {
-            Button {
-                editingCategory = category
-                showCategoryEditor = true
-            } label: {
-                Label("Edit", systemImage: "pencil")
-            }
-            
-            Divider()
-            
-            Button(role: .destructive) {
-                categoryToDelete = category
-                showDeleteConfirmation = true
-            } label: {
-                Label("Delete", systemImage: "trash")
-            }
-        }
         .onDrop(of: [.text], delegate: CategoryDropDelegate(
             category: category,
             store: store
@@ -276,6 +317,24 @@ struct CategorySidebarView: View {
         }
         .tag(icon.id)
         .draggable(icon.id.uuidString)
+        .contextMenu {
+            Button {
+                iconToRename = icon
+                newIconName = icon.name
+                showRenameIconAlert = true
+            } label: {
+                Label("Rename", systemImage: "pencil")
+            }
+            
+            Divider()
+            
+            Button(role: .destructive) {
+                iconToDelete = icon
+                showIconDeleteConfirmation = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
     }
     
     // MARK: - Helper Functions
