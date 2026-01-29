@@ -188,7 +188,11 @@ struct CategorySidebarView: View {
                             .padding(.leading, 24)
                     } else {
                         ForEach(uncategorizedIcons) { icon in
-                            iconRow(for: icon)
+                            SidebarIconRow(
+                                icon: icon,
+                                onRename: promptRename,
+                                onDelete: promptDelete
+                            )
                         }
                     }
                 },
@@ -245,7 +249,11 @@ struct CategorySidebarView: View {
                     }
                 } else {
                     ForEach(categoryIcons) { icon in
-                        iconRow(for: icon)
+                        SidebarIconRow(
+                            icon: icon,
+                            onRename: promptRename,
+                            onDelete: promptDelete
+                        )
                     }
                 }
             },
@@ -296,7 +304,36 @@ struct CategorySidebarView: View {
     
     // MARK: - Icon Row
     
-    private func iconRow(for icon: Icon) -> some View {
+    // MARK: - Helper Functions
+    
+    private func moveCategories(from source: IndexSet, to destination: Int) {
+        store.moveCategories(from: source, to: destination)
+    }
+    
+    private func promptRename(_ icon: Icon) {
+        iconToRename = icon
+        newIconName = icon.name
+        showRenameIconAlert = true
+    }
+    
+    private func promptDelete(_ icon: Icon) {
+        iconToDelete = icon
+        showIconDeleteConfirmation = true
+    }
+}
+
+// MARK: - Sidebar Icon Row
+
+private struct SidebarIconRow: View, Equatable {
+    let icon: Icon
+    let onRename: (Icon) -> Void
+    let onDelete: (Icon) -> Void
+    
+    static func == (lhs: SidebarIconRow, rhs: SidebarIconRow) -> Bool {
+        lhs.icon == rhs.icon
+    }
+    
+    var body: some View {
         HStack(spacing: 8) {
             if let imageData = icon.image,
                let nsImage = NSImage(data: imageData) {
@@ -319,9 +356,7 @@ struct CategorySidebarView: View {
         .draggable(icon.id.uuidString)
         .contextMenu {
             Button {
-                iconToRename = icon
-                newIconName = icon.name
-                showRenameIconAlert = true
+                onRename(icon)
             } label: {
                 Label("Rename", systemImage: "pencil")
             }
@@ -329,18 +364,11 @@ struct CategorySidebarView: View {
             Divider()
             
             Button(role: .destructive) {
-                iconToDelete = icon
-                showIconDeleteConfirmation = true
+                onDelete(icon)
             } label: {
                 Label("Delete", systemImage: "trash")
             }
         }
-    }
-    
-    // MARK: - Helper Functions
-    
-    private func moveCategories(from source: IndexSet, to destination: Int) {
-        store.moveCategories(from: source, to: destination)
     }
 }
 

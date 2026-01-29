@@ -2,7 +2,7 @@
 //  IconStore.swift
 //  ICNS
 //
-//  Created by John Notaris on 7/5/24.
+//  Created by Ioannis Notaris on 7/5/24.
 //
 
 import SwiftUI
