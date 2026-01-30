@@ -28,8 +28,14 @@ struct Category: Identifiable, Codable, Hashable {
     static var uncategorized: Category {
         Category(name: "Uncategorized", iconName: "tray", color: .gray, order: -1, isExpanded: true)
     }
+
+    // Special "Trash" category
+    static var trash: Category {
+        Category(name: "Trash", iconName: "trash", color: .red, order: -1, isExpanded: false)
+    }
     
     // Special IDs
     static let allIconsID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
     static let uncategorizedID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
+    static let trashID = UUID(uuidString: "00000000-0000-0000-0000-000000000003")!
 }

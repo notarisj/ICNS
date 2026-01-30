@@ -9,8 +9,13 @@ import SwiftUI
 
 struct IconGridView: View {
     let icons: [Icon]
+    @EnvironmentObject var store: IconStore
+    let categoryName: String?
     @Binding var selectedIconID: Icon.ID?
     @Binding var showInspector: Bool
+    @State private var showEmptyTrashConfirmation = false
+    @State private var showRestoreIconConfirmation = false
+    @State private var iconToRestore: Icon? = nil
     
     let columns = [
         GridItem(.adaptive(minimum: 100, maximum: 150), spacing: 16)
@@ -18,14 +23,68 @@ struct IconGridView: View {
     
     var body: some View {
         if icons.isEmpty {
-            WelcomeView(showInspector: $showInspector)
+            if categoryName == "Trash" {
+                VStack(spacing: 12) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 48))
+                        .foregroundStyle(.tertiary)
+                    Text("Trash is Empty")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let name = categoryName, name != "All Icons" {
+                VStack(spacing: 12) {
+                     Image(systemName: "folder")
+                        .font(.system(size: 48))
+                        .foregroundStyle(.tertiary)
+                    Text("No icons in \(name)")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                WelcomeView(showInspector: $showInspector)
+            }
         } else {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(icons) { icon in
                         IconGridItem(icon: icon, isSelected: selectedIconID == icon.id)
                             .onTapGesture {
-                                selectedIconID = icon.id
+                                if icon.isTrashed {
+                                    iconToRestore = icon
+                                    showRestoreIconConfirmation = true
+                                    // Deselect if it was somehow selected
+                                    if selectedIconID == icon.id {
+                                        selectedIconID = nil
+                                    }
+                                } else {
+                                    selectedIconID = icon.id
+                                }
+                            }
+                            .contextMenu {
+                                if icon.isTrashed {
+                                    Button {
+                                        store.restoreIcon(withID: icon.id)
+                                    } label: {
+                                        Label("Restore", systemImage: "arrow.uturn.backward")
+                                    }
+                                    
+                                    Divider()
+                                    
+                                    Button(role: .destructive) {
+                                        store.permanentlyDeleteIcon(withID: icon.id)
+                                    } label: {
+                                        Label("Delete Immediately", systemImage: "trash.fill")
+                                    }
+                                } else {
+                                    Button(role: .destructive) {
+                                        store.removeIcon(withID: icon.id)
+                                    } label: {
+                                        Label("Move to Trash", systemImage: "trash")
+                                    }
+                                }
                             }
                     }
                 }
@@ -33,12 +92,46 @@ struct IconGridView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        WindowHelper.toggleInspectorWithResize($showInspector)
-                    } label: {
-                        Label("Inspector", systemImage: "slider.horizontal.3")
+                    HStack {
+                        if categoryName == "Trash" {
+                            Button {
+                                showEmptyTrashConfirmation = true
+                            } label: {
+                                Label("Empty Trash", systemImage: "trash")
+                            }
+                            .help("Empty Trash")
+                            .disabled(icons.isEmpty)
+                        }
+                        
+                        Button {
+                            WindowHelper.toggleInspectorWithResize($showInspector)
+                        } label: {
+                            Label("Inspector", systemImage: "slider.horizontal.3")
+                        }
+                        .help("Show or hide the inspector panel")
                     }
-                    .help("Show or hide the inspector panel")
+                }
+            }
+            .alert("Empty Trash", isPresented: $showEmptyTrashConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Empty Trash", role: .destructive) {
+                    store.emptyTrash()
+                }
+            } message: {
+                Text("Are you sure you want to permanently erase the items in the Trash? This action cannot be undone.")
+            }
+            .alert("Restore Icon", isPresented: $showRestoreIconConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Restore") {
+                    if let icon = iconToRestore {
+                        store.restoreIcon(withID: icon.id)
+                    }
+                }
+            } message: {
+                if let icon = iconToRestore {
+                    Text("Do you want to put \"\(icon.name)\" back in its original location?")
+                } else {
+                    Text("Do you want to put this icon back in its original location?")
                 }
             }
         }
@@ -97,5 +190,5 @@ struct IconGridItem: View {
 }
 
 #Preview {
-    IconGridView(icons: [], selectedIconID: .constant(nil), showInspector: .constant(true))
+    IconGridView(icons: [], categoryName: "All Icons", selectedIconID: .constant(nil), showInspector: .constant(true))
 }

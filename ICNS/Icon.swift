@@ -15,13 +15,14 @@ struct Icon: Hashable, Codable, Identifiable {
     var outputDirectory: String?
     var selectedProfileID: UUID?
     var categoryID: UUID?
+    var isTrashed: Bool = false
     
     // Legacy support: map the old "image" key to this property so we can decode old data.
     // We make it private(set) so we can check it during migration but not use it generally.
     var legacyImageData: Data?
     
     enum CodingKeys: String, CodingKey {
-        case id, name, imageID, outputDirectory, selectedProfileID, categoryID
+        case id, name, imageID, outputDirectory, selectedProfileID, categoryID, isTrashed
         case legacyImageData = "image"
     }
     
@@ -65,6 +66,7 @@ struct Icon: Hashable, Codable, Identifiable {
         self.id = UUID()
         self.name = name
         self.outputDirectory = outputDirectory?.absoluteString
+        self.isTrashed = false
         
         if let tiff = image?.tiffRepresentation {
             self.image = tiff // This uses the setter to save to disk
@@ -76,6 +78,7 @@ struct Icon: Hashable, Codable, Identifiable {
         self.id = UUID()
         self.name = name
         self.outputDirectory = outputDirectory
+        self.isTrashed = false
         
         if let data = image {
             self.image = data // This uses the setter to save to disk
@@ -85,6 +88,19 @@ struct Icon: Hashable, Codable, Identifiable {
     // Helper to clear legacy data after migration
     mutating func clearLegacyData() {
         self.legacyImageData = nil
+    }
+    
+    // Custom decoding init to handle missing keys (backward compatibility)
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(UUID.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.imageID = try container.decodeIfPresent(String.self, forKey: .imageID)
+        self.outputDirectory = try container.decodeIfPresent(String.self, forKey: .outputDirectory)
+        self.selectedProfileID = try container.decodeIfPresent(UUID.self, forKey: .selectedProfileID)
+        self.categoryID = try container.decodeIfPresent(UUID.self, forKey: .categoryID)
+        self.isTrashed = try container.decodeIfPresent(Bool.self, forKey: .isTrashed) ?? false
+        self.legacyImageData = try container.decodeIfPresent(Data.self, forKey: .legacyImageData)
     }
 }
 

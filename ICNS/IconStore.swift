@@ -117,16 +117,55 @@ class IconStore: ObservableObject {
     
     func removeIcon(at index: Int) {
         guard icons.indices.contains(index) else { return }
-        // Clean up image file
-        icons[index].image = nil // This triggers delete in setter
-        icons.remove(at: index)
+        // Move to trash instead of deleting immediately
+        let icon = icons[index]
+        if icon.isTrashed {
+            // Permanently delete
+             // Clean up image file
+            icons[index].image = nil // This triggers delete in setter
+            icons.remove(at: index)
+        } else {
+            // Move to trash
+            icons[index].isTrashed = true
+        }
     }
     
     func removeIcon(withID id: UUID) {
         if let index = icons.firstIndex(where: { $0.id == id }) {
+            // Move to trash instead of deleting immediately
+             if icons[index].isTrashed {
+                // Permanently delete
+                icons[index].image = nil // This triggers delete in setter
+                icons.remove(at: index)
+             } else {
+                 // Move to trash
+                 icons[index].isTrashed = true
+             }
+        }
+    }
+    
+    func permanentlyDeleteIcon(withID id: UUID) {
+         if let index = icons.firstIndex(where: { $0.id == id }) {
             // Clean up image file
             icons[index].image = nil // This triggers delete in setter
             icons.remove(at: index)
+        }
+    }
+    
+    func restoreIcon(withID id: UUID) {
+        if let index = icons.firstIndex(where: { $0.id == id }) {
+            icons[index].isTrashed = false
+        }
+    }
+    
+    func emptyTrash() {
+        // Find all trashed icons
+        let trashedIndices = icons.indices.filter { icons[$0].isTrashed }
+        
+        // Remove them in reverse order to keep indices valid during removal
+        for index in trashedIndices.reversed() {
+             icons[index].image = nil // Triggers image file deletion
+             icons.remove(at: index)
         }
     }
     
@@ -191,18 +230,25 @@ class IconStore: ObservableObject {
         
         // Update searchedIcons (Global search for sidebar)
         if !currentSearchText.isEmpty {
-            self.searchedIcons = icons.filter { $0.name.localizedCaseInsensitiveContains(currentSearchText) }
+            self.searchedIcons = icons.filter { 
+                $0.name.localizedCaseInsensitiveContains(currentSearchText) && !$0.isTrashed 
+            }
         } else {
-            self.searchedIcons = icons
+            self.searchedIcons = icons.filter { !$0.isTrashed }
         }
         
         // Filter by Category (for Main View)
         if let category = currentCategory {
-            if category.name == "Uncategorized" {
-                result = result.filter { $0.categoryID == nil }
+            if category.name == "Trash" {
+                result = result.filter { $0.isTrashed }
+            } else if category.name == "Uncategorized" {
+                result = result.filter { $0.categoryID == nil && !$0.isTrashed }
             } else {
-                result = result.filter { $0.categoryID == category.id }
+                result = result.filter { $0.categoryID == category.id && !$0.isTrashed }
             }
+        } else {
+             // By default (All Icons view usually), exclude trashed
+             result = result.filter { !$0.isTrashed }
         }
         
         // Filter by Search Text (for Main View as well)
@@ -216,28 +262,41 @@ class IconStore: ObservableObject {
     // Helper to get icons for a specific category (used by sidebar, separate from main selection)
     func icons(for category: Category?) -> [Icon] {
         guard let category = category else {
-            return icons
+            return icons.filter { !$0.isTrashed }
+        }
+        
+        if category.name == "Trash" {
+            return icons.filter { $0.isTrashed }
         }
         
         // "Uncategorized" shows icons without a category
         if category.name == "Uncategorized" {
-            return icons.filter { $0.categoryID == nil }
+            return icons.filter { $0.categoryID == nil && !$0.isTrashed }
         }
         
-        return icons.filter { $0.categoryID == category.id }
+        return icons.filter { $0.categoryID == category.id && !$0.isTrashed }
     }
     
     func moveIcon(withID iconID: UUID, toCategoryID categoryID: UUID?) {
         if let index = icons.firstIndex(where: { $0.id == iconID }) {
-            icons[index].categoryID = categoryID
+             // If we are moving to trash (via drag and drop maybe?), we should set isTrashed
+             if categoryID == Category.trashID {
+                 icons[index].isTrashed = true
+             } else {
+                icons[index].categoryID = categoryID
+                icons[index].isTrashed = false // Restore if moved out of trash
+             }
         }
     }
     
     func iconCount(for category: Category) -> Int {
-        if category.name == "Uncategorized" {
-            return icons.filter { $0.categoryID == nil }.count
+        if category.name == "Trash" {
+            return icons.filter { $0.isTrashed }.count
         }
-        return icons.filter { $0.categoryID == category.id }.count
+        if category.name == "Uncategorized" {
+            return icons.filter { $0.categoryID == nil && !$0.isTrashed }.count
+        }
+        return icons.filter { $0.categoryID == category.id && !$0.isTrashed }.count
     }
     
     func renameIcon(_ icon: Icon, to newName: String) {

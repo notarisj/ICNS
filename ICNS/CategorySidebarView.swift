@@ -25,10 +25,12 @@ struct CategorySidebarView: View {
     @State private var iconToRename: Icon? = nil
     @State private var showRenameIconAlert = false
     @State private var newIconName = ""
+    @State private var showEmptyTrashConfirmation = false
     
     // Special IDs for All Icons and Uncategorized
     private let allIconsID = Category.allIconsID
     private let uncategorizedID = Category.uncategorizedID
+    private let trashID = Category.trashID
     
     var body: some View {
         List(selection: selectionBinding) {
@@ -53,9 +55,14 @@ struct CategorySidebarView: View {
                     .font(.headline)
                     .foregroundStyle(.secondary)
             }
+            
+            // Trash Section
+            Section {
+               trashRow
+            }
         }
         .searchable(text: $searchText, isPresented: $isSearchPresented, placement: .sidebar, prompt: "Search")
-        .onChange(of: searchText) { newValue in
+        .onChange(of: searchText) { _, newValue in
             store.updateSearchText(newValue)
         }
         .background {
@@ -101,7 +108,7 @@ struct CategorySidebarView: View {
             }
         } message: {
             if let icon = iconToDelete {
-                Text("Are you sure you want to delete \"\(icon.name)\"? This action cannot be undone.")
+                Text("Are you sure you want to move \"\(icon.name)\" to Trash?")
             }
         }
         .alert("Rename Icon", isPresented: $showRenameIconAlert) {
@@ -114,6 +121,14 @@ struct CategorySidebarView: View {
             }
         } message: {
             Text("Enter a new name for this icon.")
+        }
+        .alert("Empty Trash", isPresented: $showEmptyTrashConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Empty Trash", role: .destructive) {
+                store.emptyTrash()
+            }
+        } message: {
+            Text("Are you sure you want to permanently erase the items in the Trash? This action cannot be undone.")
         }
 
 
@@ -161,100 +176,19 @@ struct CategorySidebarView: View {
             return AnyView(EmptyView())
         }
         
-        return AnyView(
-            DisclosureGroup(
-                isExpanded: Binding(
-                    get: { isUncategorizedExpanded || !searchText.isEmpty },
-                    set: { isUncategorizedExpanded = $0 }
-                ),
-                content: {
-                    if uncategorizedIcons.isEmpty {
-                        Text("No uncategorized icons")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                            .padding(.leading, 24)
-                    } else {
-                        ForEach(uncategorizedIcons) { icon in
-                            SidebarIconRow(
-                                icon: icon,
-                                onRename: promptRename,
-                                onDelete: promptDelete
-                            )
-                        }
-                    }
-                },
-                label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "tray")
-                            .foregroundStyle(.gray)
-                            .font(.system(size: 16))
-                        
-                        Text("Uncategorized")
-                            .font(.body)
-                        
-                        Spacer()
-                        
-                        let count = store.icons.filter { icon in
-                            icon.categoryID == nil || !store.categories.contains(where: { $0.id == icon.categoryID })
-                        }.count
-                        
-                        Text("\(count)")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.secondary.opacity(0.15))
-                            .cornerRadius(8)
-                    }
-                    .tag(uncategorizedID)
-                }
-            )
-        )
-    }
-    
-    // MARK: - Category Row
-    
-    private func categoryRow(for category: Category) -> some View {
-        // Use filtered set from store
-        let categoryIcons = store.searchedIcons.filter { $0.categoryID == category.id }
-        
-        return DisclosureGroup(
-            isExpanded: Binding(
-                get: { category.isExpanded || !searchText.isEmpty },
-                set: { _ in store.toggleCategoryExpansion(category.id) }
-            ),
-            content: {
-                if categoryIcons.isEmpty {
-                    if searchText.isEmpty {
-                        Text("No icons")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                            .padding(.leading, 24)
-                    } else {
-                        EmptyView()
-                    }
-                } else {
-                    ForEach(categoryIcons) { icon in
-                        SidebarIconRow(
-                            icon: icon,
-                            onRename: promptRename,
-                            onDelete: promptDelete
-                        )
-                    }
-                }
-            },
-            label: {
+        if uncategorizedIcons.isEmpty {
+            return AnyView(
                 HStack(spacing: 8) {
-                    Image(systemName: category.iconName)
-                    .foregroundStyle(category.color.color)
-                    .font(.system(size: 16))
+                    Image(systemName: "tray")
+                        .foregroundStyle(.gray)
+                        .font(.system(size: 16))
                     
-                    Text(category.name)
+                    Text("Uncategorized")
                         .font(.body)
                     
                     Spacer()
                     
-                    Text("\(store.iconCount(for: category))")
+                    Text("0")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 6)
@@ -262,6 +196,138 @@ struct CategorySidebarView: View {
                         .background(Color.secondary.opacity(0.15))
                         .cornerRadius(8)
                 }
+                .padding(.vertical, 4)
+                .padding(.leading, 4) // Indent to match DisclosureGroup label padding roughly if needed, or check alignment
+                // Actually DisclosureGroup label aligns left. Let's keep it simple.
+                // Wait, default DisclosureGroup arrow is on the left.
+                // If I remove DisclosureGroup, I need to align the content so it looks like a leaf node or just a section header?
+                // The user says "down has the expansion arrow". 
+                // If it's empty, it shouldn't be expandable.
+                // So just showing the Hstack is correct.
+                .tag(uncategorizedID)
+            )
+        } else {
+            return AnyView(
+                DisclosureGroup(
+                    isExpanded: Binding(
+                        get: { isUncategorizedExpanded || !searchText.isEmpty },
+                        set: { isUncategorizedExpanded = $0 }
+                    ),
+                    content: {
+                        ForEach(uncategorizedIcons) { icon in
+                            SidebarIconRow(
+                                icon: icon,
+                                onRename: promptRename,
+                                onDelete: promptDelete
+                            )
+                        }
+                    },
+                    label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "tray")
+                                .foregroundStyle(.gray)
+                                .font(.system(size: 16))
+                            
+                            Text("Uncategorized")
+                                .font(.body)
+                            
+                            Spacer()
+                            
+                            // Re-calculate or use local variable?
+                            // reusing local variable `uncategorizedIcons` count is better since it's already filtered.
+                            // But original code used `store.icons` filter again.
+                            // Let's use `uncategorizedIcons.count` which is derived from `searchedIcons`.
+                            // Wait, if search text is empty, `searchedIcons` is all icons (minus trash).
+                            // So `uncategorizedIcons.count` is correct.
+                            
+                            Text("\(uncategorizedIcons.count)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.secondary.opacity(0.15))
+                                .cornerRadius(8)
+                        }
+                        .tag(uncategorizedID)
+                    }
+                )
+            )
+        }
+    }
+    
+    // MARK: - Trash Row
+    
+    private var trashRow: some View {
+        let trashCount = store.icons.filter { $0.isTrashed }.count
+        
+        return HStack(spacing: 8) {
+            Image(systemName: trashCount > 0 ? "trash.fill" : "trash")
+                .foregroundStyle(.gray)
+                .font(.system(size: 16))
+            
+            Text("Trash")
+                .font(.body)
+            
+            Spacer()
+            
+            Text("\(trashCount)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.secondary.opacity(0.15))
+                .cornerRadius(8)
+        }
+        .tag(trashID)
+        .contextMenu {
+            Button(role: .destructive) {
+                showEmptyTrashConfirmation = true
+            } label: {
+                Text("Empty Trash")
+            }
+            .disabled(trashCount == 0)
+        }
+        // TrashDropDelegate helper needed here, ensuring we don't compile error until it's added.
+        // But since I add them sequentially, I might need to comment out the delegate usage or add delegate first?
+        // Actually, Swift parser might tolerate out of order in same file? No, delegate usage is in the property.
+        // Wait, if I add trashRow first it references TrashDropDelegate. If TrashDropDelegate is not there, compile error.
+        // But I'm just editing text. The compiler isn't running in between.
+        // However, for safety, I should probably add the delegate first? 
+        // No, I'll just add use onDrop with the delegate.
+        .onDrop(of: [.text], delegate: TrashDropDelegate(store: store))
+    }
+    
+
+    
+    // MARK: - Category Row
+    
+    private func categoryRow(for category: Category) -> some View {
+        // Use filtered set from store
+        let categoryIcons = store.searchedIcons.filter { $0.categoryID == category.id }
+        
+        return Group {
+            if categoryIcons.isEmpty {
+                HStack(spacing: 8) {
+                    Image(systemName: category.iconName)
+                        .foregroundStyle(category.color.color)
+                        .font(.system(size: 16))
+                    
+                    Text(category.name)
+                        .font(.body)
+                    
+                    Spacer()
+                    
+                    Text("0")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.secondary.opacity(0.15))
+                        .cornerRadius(8)
+                }
+                .padding(.vertical, 4)
+                .padding(.leading, 4)
+                .contentShape(Rectangle()) // Ensure entire row is droppable even if empty space
                 .tag(category.id)
                 .contextMenu {
                     Button {
@@ -280,8 +346,62 @@ struct CategorySidebarView: View {
                         Label("Delete", systemImage: "trash")
                     }
                 }
+            } else {
+                DisclosureGroup(
+                    isExpanded: Binding(
+                        get: { category.isExpanded || !searchText.isEmpty },
+                        set: { _ in store.toggleCategoryExpansion(category.id) }
+                    ),
+                    content: {
+                        ForEach(categoryIcons) { icon in
+                            SidebarIconRow(
+                                icon: icon,
+                                onRename: promptRename,
+                                onDelete: promptDelete
+                            )
+                        }
+                    },
+                    label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: category.iconName)
+                                .foregroundStyle(category.color.color)
+                                .font(.system(size: 16))
+                            
+                            Text(category.name)
+                                .font(.body)
+                            
+                            Spacer()
+                            
+                            Text("\(store.iconCount(for: category))")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.secondary.opacity(0.15))
+                                .cornerRadius(8)
+                        }
+                        .tag(category.id)
+                        .contextMenu {
+                            Button {
+                                editingCategory = category
+                                showCategoryEditor = true
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            
+                            Divider()
+                            
+                            Button(role: .destructive) {
+                                categoryToDelete = category
+                                showDeleteConfirmation = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                    }
+                )
             }
-        )
+        }
         .onDrop(of: [.text], delegate: CategoryDropDelegate(
             category: category,
             store: store
@@ -481,8 +601,32 @@ struct CategoryDropDelegate: DropDelegate {
         return true
     }
 }
-
-#Preview {
+ 
+ struct TrashDropDelegate: DropDelegate {
+     let store: IconStore
+     
+     func performDrop(info: DropInfo) -> Bool {
+         guard let itemProvider = info.itemProviders(for: [.text]).first else {
+             return false
+         }
+         
+         itemProvider.loadItem(forTypeIdentifier: "public.text", options: nil) { data, error in
+             guard let data = data as? Data,
+                   let uuidString = String(data: data, encoding: .utf8),
+                   let iconID = UUID(uuidString: uuidString) else {
+                 return
+             }
+             
+             DispatchQueue.main.async {
+                 store.moveIcon(withID: iconID, toCategoryID: Category.trashID)
+             }
+         }
+         
+         return true
+     }
+ }
+ 
+ #Preview {
     CategorySidebarView(
         selectedIconID: .constant(nil),
         selectedCategoryID: .constant(nil)

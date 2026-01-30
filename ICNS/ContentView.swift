@@ -55,6 +55,7 @@ struct ContentView: View {
                     let displayedIcons = iconsForSelectedCategory
                     IconGridView(
                         icons: displayedIcons, 
+                        categoryName: categoryTitle,
                         selectedIconID: Binding(
                             get: { selectedIconID },
                             set: { 
@@ -274,16 +275,19 @@ struct ContentView: View {
     private func deleteIcon() {
         if let selectedID = selectedIconID,
            let index = store.icons.firstIndex(where: { $0.id == selectedID }) {
-            store.icons.remove(at: index)
+            // Use store method to handle trash logic
+            store.removeIcon(at: index)
             
-            if store.icons.isEmpty {
-                selectedIconID = nil
-            } else if store.icons.indices.contains(index) {
-                selectedIconID = store.icons[index].id
-            } else if index > 0 {
-                selectedIconID = store.icons[index - 1].id
+            // Selection logic: if item moved to trash (hidden), we need to select something else
+            // If we are in Trash view, it might be permanently deleted.
+            // Simplified selection logic:
+            if store.filteredIcons.isEmpty {
+                 selectedIconID = nil
             } else {
-                selectedIconID = nil
+                 // Try to select next or previous from filtered list?
+                 // Since store.icons changes could be complex (reordering), just deselect for now or keep generic logic
+                 // If the icon is still in store.icons (just trashed) but we are filtering it out, we should deselect it.
+                 selectedIconID = nil
             }
         }
     }
@@ -300,9 +304,11 @@ struct ContentView: View {
     private var iconsForSelectedCategory: [Icon] {
         if let categoryID = selectedCategoryID {
             if categoryID == Category.allIconsID {
-                return store.icons
+                return store.icons.filter { !$0.isTrashed }
             } else if categoryID == Category.uncategorizedID {
-                return store.icons.filter { $0.categoryID == nil }
+                return store.icons.filter { $0.categoryID == nil && !$0.isTrashed }
+            } else if categoryID == Category.trashID {
+                return store.icons.filter { $0.isTrashed }
             } else if let category = store.categories.first(where: { $0.id == categoryID }) {
                 return store.icons(for: category)
             }
@@ -317,6 +323,8 @@ struct ContentView: View {
                 return "All Icons"
             } else if categoryID == Category.uncategorizedID {
                 return "Uncategorized"
+            } else if categoryID == Category.trashID {
+                return "Trash"
             } else if let category = store.categories.first(where: { $0.id == categoryID }) {
                 return category.name
             }
