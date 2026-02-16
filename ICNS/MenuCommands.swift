@@ -28,6 +28,10 @@ struct FocusedDeleteItemKey: FocusedValueKey {
     typealias Value = () -> Void
 }
 
+struct ShowInspectorKey: FocusedValueKey {
+    typealias Value = Binding<Bool>
+}
+
 extension FocusedValues {
     var editCategoryAction: FocusedEditCategoryKey.Value? {
         get { self[FocusedEditCategoryKey.self] }
@@ -52,6 +56,11 @@ extension FocusedValues {
     var deleteItemAction: FocusedDeleteItemKey.Value? {
         get { self[FocusedDeleteItemKey.self] }
         set { self[FocusedDeleteItemKey.self] = newValue }
+    }
+    
+    var showInspector: Binding<Bool>? {
+        get { self[ShowInspectorKey.self] }
+        set { self[ShowInspectorKey.self] = newValue }
     }
 }
 

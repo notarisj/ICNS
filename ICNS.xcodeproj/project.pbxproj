@@ -25,7 +25,6 @@
 		0599CC152F113BF60002A5C0 /* ExportProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0599CC0F2F113BF60002A5C0 /* ExportProfile.swift */; };
 		0599CC162F113BF60002A5C0 /* ProfileEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0599CC112F113BF60002A5C0 /* ProfileEditorSheet.swift */; };
 		0599CC172F113BF60002A5C0 /* ExportProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0599CC102F113BF60002A5C0 /* ExportProfilesView.swift */; };
-		0599CC1A2F113D580002A5C0 /* WindowHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0599CC192F113D540002A5C0 /* WindowHelper.swift */; };
 		05B6ECC32F2BAC6F005F2139 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05B6ECC22F2BAC6B005F2139 /* WelcomeView.swift */; };
 		05B6ECC72F2BDA0E005F2139 /* MenuCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05B6ECC62F2BDA0A005F2139 /* MenuCommands.swift */; };
 		AA0000012F200000000000A1 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000002F200000000000A0 /* Category.swift */; };
@@ -78,7 +77,6 @@
 		0599CC102F113BF60002A5C0 /* ExportProfilesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportProfilesView.swift; sourceTree = "<group>"; };
 		0599CC112F113BF60002A5C0 /* ProfileEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditorSheet.swift; sourceTree = "<group>"; };
 		0599CC122F113BF60002A5C0 /* ProfilePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePicker.swift; sourceTree = "<group>"; };
-		0599CC192F113D540002A5C0 /* WindowHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowHelper.swift; sourceTree = "<group>"; };
 		05B6ECC22F2BAC6B005F2139 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		05B6ECC62F2BDA0A005F2139 /* MenuCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuCommands.swift; sourceTree = "<group>"; };
 		AA0000002F200000000000A0 /* Category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Category.swift; sourceTree = "<group>"; };
@@ -146,7 +144,6 @@
 				05B6ECCD2F2C06DE005F2139 /* Services */,
 				05B6ECC62F2BDA0A005F2139 /* MenuCommands.swift */,
 				05B6ECC22F2BAC6B005F2139 /* WelcomeView.swift */,
-				0599CC192F113D540002A5C0 /* WindowHelper.swift */,
 				0599CC0F2F113BF60002A5C0 /* ExportProfile.swift */,
 				0599CC102F113BF60002A5C0 /* ExportProfilesView.swift */,
 				0599CC112F113BF60002A5C0 /* ProfileEditorSheet.swift */,
@@ -333,7 +330,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0599CC1A2F113D580002A5C0 /* WindowHelper.swift in Sources */,
 				0549D61E2D2BEA94000C3808 /* InspectorView.swift in Sources */,
 				058A581B2F0C440400A117B0 /* IconStore.swift in Sources */,
 				05586F3D2BEA368300BD75E7 /* Icon.swift in Sources */,

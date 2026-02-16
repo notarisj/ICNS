@@ -88,16 +88,6 @@ struct WelcomeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
 
         .background(Color(nsColor: .textBackgroundColor))
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    WindowHelper.toggleInspectorWithResize($showInspector)
-                } label: {
-                    Label("Inspector", systemImage: "slider.horizontal.3")
-                }
-                .help("Show or hide the inspector panel")
-            }
-        }
 
     }
 }

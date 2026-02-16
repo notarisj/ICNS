@@ -21,6 +21,7 @@ struct ICNSApp: App {
         .defaultSize(width: 900, height: 600)
         .commands {
             MenuCommands()
+            InspectorCommands()
         }
     }
 }

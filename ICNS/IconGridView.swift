@@ -90,28 +90,6 @@ struct IconGridView: View {
                 }
                 .padding()
             }
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    HStack {
-                        if categoryName == "Trash" {
-                            Button {
-                                showEmptyTrashConfirmation = true
-                            } label: {
-                                Label("Empty Trash", systemImage: "trash")
-                            }
-                            .help("Empty Trash")
-                            .disabled(icons.isEmpty)
-                        }
-                        
-                        Button {
-                            WindowHelper.toggleInspectorWithResize($showInspector)
-                        } label: {
-                            Label("Inspector", systemImage: "slider.horizontal.3")
-                        }
-                        .help("Show or hide the inspector panel")
-                    }
-                }
-            }
             .alert("Empty Trash", isPresented: $showEmptyTrashConfirmation) {
                 Button("Cancel", role: .cancel) { }
                 Button("Empty Trash", role: .destructive) {

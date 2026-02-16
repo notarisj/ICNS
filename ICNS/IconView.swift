@@ -15,15 +15,12 @@ struct IconView: View {
     @Binding var showInspector: Bool
     @Binding var showAddIconSheet: Bool
     @Binding var showDeleteConfirmation: Bool
+    @Binding var iconsGenerated: Bool
+    @Binding var showClearImageConfirmation: Bool
     
     @EnvironmentObject var profileStore: ProfileStore
     @AppStorage("showImageBorder") private var showImageBorder = true
     
-    @State private var showAlert = false
-    @State private var alertMessage = ""
-    @State private var alertTitle = "Success"
-    @State private var iconsGenerated = false
-    @State private var showClearImageConfirmation = false
     @State private var currentImage: NSImage? = nil
     
     var body: some View {
@@ -41,10 +38,6 @@ struct IconView: View {
             )
             .id(icon.id) // Force reset on icon change
         }
-
-        .alert(isPresented: $showAlert) {
-            Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .default(Text("OK")))
-        }
         .onAppear {
             updateCurrentImage()
         }
@@ -57,38 +50,7 @@ struct IconView: View {
         .onChange(of: icon.name) {
             iconsGenerated = false
         }
-        .toolbar {
-            ToolbarItemGroup(placement: .primaryAction) {
-                if !iconsGenerated {
-                    Button(action: generateIcons) {
-                        Label("Generate Icons", systemImage: "sparkles.rectangle.stack")
-                    }
-                    .help("Generate the icon set from your master image")
-                    .disabled(self.icon.image == nil || icon.outputDirectory == nil)
-                } else {
-                    Button(action: generateICNS) {
-                        Label("Save ICNS", systemImage: "arrow.down.doc.fill")
-                    }
-                    .help("Convert the icon set to a .icns file")
-                }
-            
-                if icon.image != nil {
-                    Button(action: {
-                        showClearImageConfirmation = true
-                    }) {
-                        Label("Clear Image", systemImage: "trash")
-                    }
-                    .help("Remove the current image")
-                }
-                
-                Button {
-                    WindowHelper.toggleInspectorWithResize($showInspector)
-                } label: {
-                    Label("Inspector", systemImage: "slider.horizontal.3")
-                }
-                .help("Show or hide the inspector panel")
-            }
-        }
+
         .alert("Clear Image", isPresented: $showClearImageConfirmation) {
             Button("Cancel", role: .cancel) { }
             Button("Clear", role: .destructive) {
@@ -114,81 +76,6 @@ struct IconView: View {
                 }
             }
         }
-    }
-    
-    func generateIcons() {
-        guard let imageData = icon.image,
-              let image = NSImage(data: imageData),
-              let outputDirectoryString = self.icon.outputDirectory,
-              let outputDirectoryURL = URL(string: outputDirectoryString)
-        else { return }
-        
-        let accessGranted = outputDirectoryURL.startAccessingSecurityScopedResource()
-        
-        if !accessGranted {
-            self.alertMessage = "Access to the directory was denied. Select the output directory and try again."
-            self.alertTitle = "Error"
-            self.showAlert = true
-            return
-        }
-        
-        // Get selected profile or use default
-        let profile = profileStore.getProfile(byID: icon.selectedProfileID)
-        
-        let result = ImageGenerationService.shared.generateIcons(
-            from: image,
-            outputDirectory: outputDirectoryURL,
-            profile: profile,
-            iconName: icon.name
-        )
-        
-        outputDirectoryURL.stopAccessingSecurityScopedResource()
-        
-        switch result {
-        case .success(let folderURL):
-            self.alertMessage = "Icons have been successfully created at \(folderURL.path)!"
-            self.alertTitle = "Success"
-            self.iconsGenerated = true
-        case .failure(let error):
-            self.alertMessage = "Error creating icons: \(error.localizedDescription)"
-            self.alertTitle = "Error"
-        }
-        
-        self.showAlert = true
-    }
-    
-    func generateICNS() {
-        guard let outputDirectoryString = self.icon.outputDirectory,
-              let outputDirectoryURL = URL(string: outputDirectoryString)
-        else { return }
-        
-        let accessGranted = outputDirectoryURL.startAccessingSecurityScopedResource()
-        
-        if !accessGranted {
-            self.alertMessage = "Access to the directory was denied. Select the output directory and try again."
-            self.alertTitle = "Error"
-            self.showAlert = true
-            return
-        }
-        
-        let result = ImageGenerationService.shared.generateICNS(from: icon.name, inside: outputDirectoryURL)
-        
-        outputDirectoryURL.stopAccessingSecurityScopedResource()
-        
-        switch result {
-        case .success(let icnsURL):
-             self.alertMessage = "ICNS file has been successfully created at \(icnsURL.path)!"
-             self.alertTitle = "Success"
-        case .failure(let error):
-            self.alertMessage = "Failed to create ICNS file. Error: \(error.localizedDescription)"
-            self.alertTitle = "Error"
-        }
-        
-        self.showAlert = true
-    }
-    
-    func clearImage() {
-        showClearImageConfirmation = true
     }
     
     func performClearImage() {

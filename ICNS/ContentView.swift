@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var store: IconStore
+    @EnvironmentObject var profileStore: ProfileStore
     @State private var selectedIconID: Icon.ID? = nil
     @State private var selectedCategoryID: UUID? = Category.allIconsID
     @State private var showDeleteConfirmation = false
@@ -20,6 +21,16 @@ struct ContentView: View {
     @State private var newIconName = ""
     @State private var newIconCategory: UUID? = nil // State for selected category
     @State private var didNavigateFromGrid = false
+    
+    // IconView toolbar state
+    @State private var iconsGenerated = false
+    @State private var showClearImageConfirmation = false
+    @State private var showEmptyTrashConfirmation = false
+    
+    // Alert state for generation
+    @State private var showAlert = false
+    @State private var alertMessage = ""
+    @State private var alertTitle = "Success"
 
     var body: some View {
         NavigationSplitView {
@@ -38,101 +49,12 @@ struct ContentView: View {
             .navigationTitle("Icons")
 
         } detail: {
-            // MAIN CONTENT AREA
-            Group {
-                if let iconIndex = store.icons.firstIndex(where: { $0.id == selectedIconID }) {
-                    // Show individual icon detail
-                    IconView(
-                        icon: $store.icons[iconIndex],
-                        icons: $store.icons,
-                        showInspector: $showInspector,
-                        showAddIconSheet: $showAddIconSheet,
-                        showDeleteConfirmation: $showDeleteConfirmation
-                    )
-                    .ignoresSafeArea()
-                } else if selectedCategoryID != nil || selectedIconID == nil {
-                    // Show icon grid for selected category or All Icons
-                    let displayedIcons = iconsForSelectedCategory
-                    IconGridView(
-                        icons: displayedIcons, 
-                        categoryName: categoryTitle,
-                        selectedIconID: Binding(
-                            get: { selectedIconID },
-                            set: { 
-                                selectedIconID = $0
-                                if $0 != nil { didNavigateFromGrid = true }
-                            }
-                        ),
-                        showInspector: $showInspector
-                    )
-                        .navigationTitle(categoryTitle)
-                } else {
-                    WelcomeView(showInspector: $showInspector)
-                }
-            }
-            .navigationTitle(currentIconName)
-            .toolbar {
-                ToolbarItemGroup(placement: .navigation) {
-                    if didNavigateFromGrid && selectedIconID != nil {
-                        Button {
-                            selectedIconID = nil
-                            didNavigateFromGrid = false
-                        } label: {
-                            Label("Back", systemImage: "chevron.left")
-                        }
-                    }
-                    
-                    Menu {
-                        Button {
-                            newIconCategory = selectedCategoryID // Default to current category
-                            showAddIconSheet = true
-                        } label: {
-                            Label("New Icon Set", systemImage: "app.dashed")
-                        }
-                        
-                        Button {
-                            editingCategory = nil
-                            showCategoryEditor = true
-                        } label: {
-                            Label("New Category", systemImage: "folder.badge.plus")
-                        }
-                    } label: {
-                        Label("Add", systemImage: "plus")
-                    }
-                    .help("Create a new icon set or category")
-                    
-
-                }
-                
-
-                
-
-            }
+            detailContent
         }
         .navigationSplitViewStyle(.balanced)
         .toolbarBackground(.hidden, for: .automatic)
-        .frame(minWidth: showInspector ? nil : 600)
-        .inspector(isPresented: $showInspector) {
-            if let bindingIcon = bindingForSelectedIcon() {
-                InspectorView(icon: bindingIcon)
-                    .inspectorColumnWidth(min: 250, ideal: 280, max: 350)
-            } else {
-                VStack(spacing: 12) {
-                    Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.tertiary)
-                    Text("No Selection")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    Text("Select an icon to view its details")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .inspectorColumnWidth(min: 250, ideal: 280, max: 350)
-            }
-        }
 
+        .focusedSceneValue(\.showInspector, $showInspector)
         .sheet(isPresented: $showAddIconSheet) {
             addIconSheet
         }
@@ -157,9 +79,20 @@ struct ContentView: View {
                 secondaryButton: .cancel()
             )
         }
+        .alert("Empty Trash", isPresented: $showEmptyTrashConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Empty Trash", role: .destructive) {
+                store.emptyTrash()
+            }
+        } message: {
+            Text("Are you sure you want to permanently delete these items? This action cannot be undone.")
+        }
         .onReceive(NotificationCenter.default.publisher(for: .newIconSet)) { _ in
             newIconCategory = selectedCategoryID
             showAddIconSheet = true
+        }
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
         .onReceive(NotificationCenter.default.publisher(for: .newCategory)) { _ in
             editingCategory = nil
@@ -169,7 +102,157 @@ struct ContentView: View {
     
     // MARK: - Helper Views
     
-
+    @ViewBuilder
+    private var detailContent: some View {
+        Group {
+            if let iconIndex = store.icons.firstIndex(where: { $0.id == selectedIconID }) {
+                // Show individual icon detail
+                IconView(
+                    icon: $store.icons[iconIndex],
+                    icons: $store.icons,
+                    showInspector: $showInspector,
+                    showAddIconSheet: $showAddIconSheet,
+                    showDeleteConfirmation: $showDeleteConfirmation,
+                    iconsGenerated: $iconsGenerated,
+                    showClearImageConfirmation: $showClearImageConfirmation
+                )
+                // .ignoresSafeArea()
+            } else if selectedCategoryID != nil || selectedIconID == nil {
+                // Show icon grid for selected category or All Icons
+                let displayedIcons = iconsForSelectedCategory
+                IconGridView(
+                    icons: displayedIcons, 
+                    categoryName: categoryTitle,
+                    selectedIconID: Binding(
+                        get: { selectedIconID },
+                        set: { newValue in
+                            selectedIconID = newValue
+                            if newValue != nil { didNavigateFromGrid = true }
+                        }
+                    ),
+                    showInspector: $showInspector
+                )
+                    .navigationTitle(categoryTitle)
+            } else {
+                WelcomeView(showInspector: $showInspector)
+            }
+        }
+        .frame(minHeight: 400)
+        .navigationTitle(currentIconName)
+        .inspector(isPresented: $showInspector) {
+            inspectorContent
+                .inspectorColumnWidth(min: 250, ideal: 270, max: 330)
+        }
+        .toolbar {
+            toolbarItems
+        }
+    }
+    
+    @ViewBuilder
+    private var inspectorContent: some View {
+        if let bindingIcon = bindingForSelectedIcon() {
+            InspectorView(icon: bindingIcon)
+                .id(selectedIconID)
+        } else {
+            VStack(spacing: 12) {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 40))
+                    .foregroundStyle(.tertiary)
+                Text("No Selection")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                Text("Select an icon to view its details")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarItems: some ToolbarContent {
+        ToolbarItemGroup(placement: .navigation) {
+            if didNavigateFromGrid && selectedIconID != nil {
+                Button {
+                    selectedIconID = nil
+                    didNavigateFromGrid = false
+                } label: {
+                    Label("Back", systemImage: "chevron.left")
+                }
+            }
+            
+            Menu {
+                Button {
+                    newIconCategory = selectedCategoryID // Default to current category
+                    showAddIconSheet = true
+                } label: {
+                    Label("New Icon Set", systemImage: "app.dashed")
+                }
+                
+                Button {
+                    editingCategory = nil
+                    showCategoryEditor = true
+                } label: {
+                    Label("New Category", systemImage: "folder.badge.plus")
+                }
+            } label: {
+                Label("Add", systemImage: "plus")
+            }
+            .help("Create a new icon set or category")
+        }
+        
+        ToolbarItemGroup(placement: .primaryAction) {
+            // IconView-specific toolbar items
+            if let iconIndex = store.icons.firstIndex(where: { $0.id == selectedIconID }) {
+                let currentIcon = store.icons[iconIndex]
+                
+                if !iconsGenerated {
+                    Button {
+                        generateIcons()
+                    } label: {
+                        Label("Generate Icons", systemImage: "sparkles.rectangle.stack")
+                    }
+                    .help("Generate the icon set from your master image")
+                    .disabled(currentIcon.image == nil || currentIcon.outputDirectory == nil)
+                } else {
+                    Button {
+                        generateICNS()
+                    } label: {
+                        Label("Save ICNS", systemImage: "arrow.down.doc.fill")
+                    }
+                    .help("Convert the icon set to a .icns file")
+                }
+                
+                if currentIcon.image != nil {
+                    Button {
+                        showClearImageConfirmation = true
+                    } label: {
+                        Label("Clear Image", systemImage: "trash")
+                    }
+                    .help("Remove the current image")
+                }
+            }
+            
+            // IconGridView-specific toolbar items (Trash)
+            if selectedCategoryID == Category.trashID && selectedIconID == nil {
+                Button {
+                    showEmptyTrashConfirmation = true
+                } label: {
+                    Label("Empty Trash", systemImage: "trash")
+                }
+                .help("Empty Trash")
+                .disabled(store.icons.filter { $0.isTrashed }.isEmpty)
+            }
+            
+            // Inspector toggle (always visible)
+            Button {
+                showInspector.toggle()
+            } label: {
+                Label("Inspector", systemImage: "slider.horizontal.3")
+            }
+            .help("Show or hide the inspector panel")
+        }
+    }
     
     // MARK: - Helper Functions
     
@@ -331,4 +414,89 @@ struct ContentView: View {
         }
         return "All Icons"
     }
+    
+    // MARK: - Generation Functions
+    
+    private func generateIcons() {
+        guard let selectedID = selectedIconID,
+              let index = store.icons.firstIndex(where: { $0.id == selectedID }) else { return }
+        
+        let icon = store.icons[index]
+        
+        guard let imageData = icon.image,
+              let image = NSImage(data: imageData),
+              let outputDirectoryString = icon.outputDirectory,
+              let outputDirectoryURL = URL(string: outputDirectoryString)
+        else { return }
+        
+        let accessGranted = outputDirectoryURL.startAccessingSecurityScopedResource()
+        
+        if !accessGranted {
+            self.alertMessage = "Access to the directory was denied. Select the output directory and try again."
+            self.alertTitle = "Error"
+            self.showAlert = true
+            return
+        }
+        
+        // Get selected profile or use default
+        let profile = profileStore.getProfile(byID: icon.selectedProfileID)
+        
+        let result = ImageGenerationService.shared.generateIcons(
+            from: image,
+            outputDirectory: outputDirectoryURL,
+            profile: profile,
+            iconName: icon.name
+        )
+        
+        outputDirectoryURL.stopAccessingSecurityScopedResource()
+        
+        switch result {
+        case .success(let folderURL):
+            self.alertMessage = "Icons have been successfully created at \(folderURL.path)!"
+            self.alertTitle = "Success"
+            self.iconsGenerated = true
+        case .failure(let error):
+            self.alertMessage = "Error creating icons: \(error.localizedDescription)"
+            self.alertTitle = "Error"
+        }
+        
+        self.showAlert = true
+    }
+    
+    private func generateICNS() {
+        guard let selectedID = selectedIconID,
+              let index = store.icons.firstIndex(where: { $0.id == selectedID }) else { return }
+        
+        let icon = store.icons[index]
+        
+        guard let outputDirectoryString = icon.outputDirectory,
+              let outputDirectoryURL = URL(string: outputDirectoryString)
+        else { return }
+        
+        let accessGranted = outputDirectoryURL.startAccessingSecurityScopedResource()
+        
+        if !accessGranted {
+            self.alertMessage = "Access to the directory was denied. Select the output directory and try again."
+            self.alertTitle = "Error"
+            self.showAlert = true
+            return
+        }
+        
+        let result = ImageGenerationService.shared.generateICNS(from: icon.name, inside: outputDirectoryURL)
+        
+        outputDirectoryURL.stopAccessingSecurityScopedResource()
+        
+        switch result {
+        case .success(let icnsURL):
+             self.alertMessage = "ICNS file has been successfully created at \(icnsURL.path)!"
+             self.alertTitle = "Success"
+        case .failure(let error):
+            self.alertMessage = "Failed to create ICNS file. Error: \(error.localizedDescription)"
+            self.alertTitle = "Error"
+        }
+        
+        self.showAlert = true
+    }
+    
+
 }
