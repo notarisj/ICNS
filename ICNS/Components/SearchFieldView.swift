@@ -83,7 +83,7 @@ class MySearchField: NSSearchField {
         } else {
             stringValue = ""
             // Notify delegate manually since programmatic change doesn't always trigger it
-            if let delegate = delegate as? NSSearchFieldDelegate {
+            if let delegate = delegate {
                 delegate.controlTextDidChange?(Notification(name: NSControl.textDidChangeNotification, object: self))
             }
         }

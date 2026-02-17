@@ -4,50 +4,22 @@
 //
 //  Created by Ioannis Notaris on 17/2/24.
 //
+//
 
 import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var store: IconStore
     @EnvironmentObject var profileStore: ProfileStore
-    @State private var selectedIconID: Icon.ID? = nil
-    @State private var selectedCategoryID: UUID? = Category.allIconsID
-    @State private var showDeleteConfirmation = false
-    @State private var showInspector = true
-    @State private var showAddIconSheet = false
-    @State private var showCategoryEditor = false
-    @State private var editingCategory: Category? = nil
-
-    @State private var newIconName = ""
-    @State private var newIconCategory: UUID? = nil // State for selected category
-    @State private var didNavigateFromGrid = false
     
-    // IconView toolbar state
-    @State private var iconsGenerated = false
-    @State private var showClearImageConfirmation = false
-    @State private var showEmptyTrashConfirmation = false
+    @StateObject private var viewModel = ContentViewModel()
     
-    // Alert state for generation
-    @State private var showAlert = false
-    @State private var alertMessage = ""
-    @State private var alertTitle = "Success"
-    
-    // Toolbar Search State (for filtering grids only, not sidebar)
-    @State private var toolbarSearchText = ""
-    @State private var isSearching = false
-
     var body: some View {
         NavigationSplitView {
             // LEFT SIDEBAR - Category-based navigation
             CategorySidebarView(
-                selectedIconID: Binding(
-                    get: { selectedIconID },
-                    set: { 
-                        selectedIconID = $0
-                        if $0 != nil { didNavigateFromGrid = false }
-                    }
-                ),
-                selectedCategoryID: $selectedCategoryID
+                selectedIconID: $viewModel.selectedIconID,
+                selectedCategoryID: $viewModel.selectedCategoryID
             )
             .navigationSplitViewColumnWidth(min: 200, ideal: 250, max: 350)
             .navigationTitle("Icons")
@@ -56,44 +28,36 @@ struct ContentView: View {
             detailContent
                 .onTapGesture {
                     // Only collapse toolbar search if it's empty
-                    if toolbarSearchText.isEmpty {
-                        isSearching = false
+                    if viewModel.toolbarSearchText.isEmpty {
+                        viewModel.isSearching = false
                     }
                     // Always clear focus from both search fields
                     NSApp.keyWindow?.makeFirstResponder(nil)
                 }
-                // .searchable removed in favor of custom toolbar item
         }
         .navigationSplitViewStyle(.balanced)
         .toolbarBackground(.hidden, for: .automatic)
-        .focusedSceneValue(\.searchFocus, $isSearching)
-        .focusedSceneValue(\.showInspector, $showInspector)
-        // Toolbar search does NOT update store - it only filters grids locally
-        .sheet(isPresented: $showAddIconSheet) {
+        .focusedSceneValue(\.searchFocus, $viewModel.isSearching)
+        .focusedSceneValue(\.showInspector, $viewModel.showInspector)
+        .sheet(isPresented: $viewModel.showAddIconSheet) {
             addIconSheet
         }
-        .sheet(isPresented: $showCategoryEditor) {
-            CategoryEditorSheet(category: $editingCategory) { category in
-                if editingCategory != nil {
-                    store.updateCategory(category)
-                } else {
-                    var newCategory = category
-                    newCategory.order = store.categories.count
-                    store.addCategory(newCategory)
-                }
+        .sheet(isPresented: $viewModel.showCategoryEditor) {
+            CategoryEditorSheet(category: $viewModel.editingCategory) { category in
+                viewModel.saveCategory(store: store, category: category)
             }
         }
-        .alert(isPresented: $showDeleteConfirmation) {
+        .alert(isPresented: $viewModel.showDeleteConfirmation) {
             Alert(
                 title: Text("Remove Icon"),
                 message: Text("Are you sure you want to remove this icon?"),
                 primaryButton: .destructive(Text("Remove")) {
-                    deleteIcon()
+                    viewModel.deleteIcon(store: store)
                 },
                 secondaryButton: .cancel()
             )
         }
-        .alert("Empty Trash", isPresented: $showEmptyTrashConfirmation) {
+        .alert("Empty Trash", isPresented: $viewModel.showEmptyTrashConfirmation) {
             Button("Cancel", role: .cancel) { }
             Button("Empty Trash", role: .destructive) {
                 store.emptyTrash()
@@ -102,15 +66,15 @@ struct ContentView: View {
             Text("Are you sure you want to permanently delete these items? This action cannot be undone.")
         }
         .onReceive(NotificationCenter.default.publisher(for: .newIconSet)) { _ in
-            newIconCategory = selectedCategoryID
-            showAddIconSheet = true
+            viewModel.newIconCategory = viewModel.selectedCategoryID
+            viewModel.showAddIconSheet = true
         }
-        .alert(isPresented: $showAlert) {
-            Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+        .alert(isPresented: $viewModel.showAlert) {
+            Alert(title: Text(viewModel.alertTitle), message: Text(viewModel.alertMessage), dismissButton: .default(Text("OK")))
         }
         .onReceive(NotificationCenter.default.publisher(for: .newCategory)) { _ in
-            editingCategory = nil
-            showCategoryEditor = true
+            viewModel.editingCategory = nil
+            viewModel.showCategoryEditor = true
         }
     }
     
@@ -119,41 +83,33 @@ struct ContentView: View {
     @ViewBuilder
     private var detailContent: some View {
         Group {
-            if let iconIndex = store.icons.firstIndex(where: { $0.id == selectedIconID }) {
+            if let iconIndex = store.icons.firstIndex(where: { $0.id == viewModel.selectedIconID }) {
                 // Show individual icon detail
                 IconView(
                     icon: $store.icons[iconIndex],
                     icons: $store.icons,
-                    showInspector: $showInspector,
-                    showAddIconSheet: $showAddIconSheet,
-                    showDeleteConfirmation: $showDeleteConfirmation,
-                    iconsGenerated: $iconsGenerated,
-                    showClearImageConfirmation: $showClearImageConfirmation
+                    showInspector: $viewModel.showInspector,
+                    showAddIconSheet: $viewModel.showAddIconSheet,
+                    showDeleteConfirmation: $viewModel.showDeleteConfirmation,
+                    iconsGenerated: $viewModel.iconsGenerated,
+                    showClearImageConfirmation: $viewModel.showClearImageConfirmation
                 )
-                // .ignoresSafeArea()
-            } else if selectedCategoryID != nil || selectedIconID == nil {
+            } else if viewModel.selectedCategoryID != nil || viewModel.selectedIconID == nil {
                 // Show icon grid for selected category or All Icons
-                let displayedIcons = iconsForSelectedCategory
                 IconGridView(
-                    icons: displayedIcons, 
-                    categoryName: categoryTitle,
-                    selectedIconID: Binding(
-                        get: { selectedIconID },
-                        set: { newValue in
-                            selectedIconID = newValue
-                            if newValue != nil { didNavigateFromGrid = true }
-                        }
-                    ),
-                    showInspector: $showInspector
+                    icons: viewModel.iconsForSelectedCategory(store: store),
+                    categoryName: viewModel.categoryTitle(store: store),
+                    selectedIconID: $viewModel.selectedIconID,
+                    showInspector: $viewModel.showInspector
                 )
-                    .navigationTitle(categoryTitle)
+                    .navigationTitle(viewModel.categoryTitle(store: store))
             } else {
-                WelcomeView(showInspector: $showInspector)
+                WelcomeView(showInspector: $viewModel.showInspector)
             }
         }
         .frame(minHeight: 400)
-        .navigationTitle(currentIconName)
-        .inspector(isPresented: $showInspector) {
+        .navigationTitle(viewModel.currentIconName(store: store))
+        .inspector(isPresented: $viewModel.showInspector) {
             inspectorContent
                 .inspectorColumnWidth(min: 250, ideal: 270, max: 330)
         }
@@ -164,27 +120,27 @@ struct ContentView: View {
     
     @ViewBuilder
     private var inspectorContent: some View {
-        if let bindingIcon = bindingForSelectedIcon() {
-            InspectorView(icon: bindingIcon)
-                .id(selectedIconID)
+        if let selectedID = viewModel.selectedIconID,
+           let index = store.icons.firstIndex(where: { $0.id == selectedID }) {
+            InspectorView(icon: $store.icons[index])
+                .id(selectedID)
         } else {
             VStack(spacing: 12) {
                 Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 40))
-                    .foregroundStyle(.tertiary)
+                .font(.system(size: 40))
+                .foregroundStyle(.tertiary)
                 Text("No Selection")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
+                .font(.headline)
+                .foregroundStyle(.secondary)
                 Text("Select an icon to view its details")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
             .onTapGesture {
-                // Only collapse toolbar search if it's empty
-                if toolbarSearchText.isEmpty {
-                    isSearching = false
+                if viewModel.toolbarSearchText.isEmpty {
+                    viewModel.isSearching = false
                 }
                 NSApp.keyWindow?.makeFirstResponder(nil)
             }
@@ -195,10 +151,10 @@ struct ContentView: View {
     private var toolbarItems: some ToolbarContent {
         // MARK: - Navigation Items (Left Side)
         ToolbarItemGroup(placement: .navigation) {
-            if didNavigateFromGrid && selectedIconID != nil {
+            if viewModel.didNavigateFromGrid && viewModel.selectedIconID != nil {
                 Button {
-                    selectedIconID = nil
-                    didNavigateFromGrid = false
+                    viewModel.selectedIconID = nil
+                    viewModel.didNavigateFromGrid = false
                 } label: {
                     Label("Back", systemImage: "chevron.left")
                 }
@@ -206,15 +162,15 @@ struct ContentView: View {
             
             Menu {
                 Button {
-                    newIconCategory = selectedCategoryID
-                    showAddIconSheet = true
+                    viewModel.newIconCategory = viewModel.selectedCategoryID
+                    viewModel.showAddIconSheet = true
                 } label: {
                     Label("New Icon Set", systemImage: "app.dashed")
                 }
                 
                 Button {
-                    editingCategory = nil
-                    showCategoryEditor = true
+                    viewModel.editingCategory = nil
+                    viewModel.showCategoryEditor = true
                 } label: {
                     Label("New Category", systemImage: "folder.badge.plus")
                 }
@@ -224,15 +180,15 @@ struct ContentView: View {
             .help("Create a new icon set or category")
         }
         
-        // MARK: - Context Actions (Dynamic based on view)
+        // MARK: - Context Actions
         ToolbarItemGroup(placement: .primaryAction) {
             contextSpecificItems
         }
         
-        // MARK: - Inspector Toggle (Right Side, Last Position)
+        // MARK: - Inspector Toggle
         ToolbarItem(placement: .primaryAction) {
             Button {
-                showInspector.toggle()
+                viewModel.showInspector.toggle()
             } label: {
                 Label("Inspector", systemImage: "slider.horizontal.3")
             }
@@ -244,23 +200,23 @@ struct ContentView: View {
     @ViewBuilder
     private var contextSpecificItems: some View {
         // IconGridView-specific toolbar items (Search + Trash)
-        if selectedIconID == nil {
+        if viewModel.selectedIconID == nil {
             // Search field - only in grid view
-            if isSearching {
-                SearchFieldView(text: $toolbarSearchText, isSearching: $isSearching)
+            if viewModel.isSearching {
+                SearchFieldView(text: $viewModel.toolbarSearchText, isSearching: $viewModel.isSearching)
                     .frame(width: 200)
             } else {
                 Button {
-                    isSearching = true
+                    viewModel.isSearching = true
                 } label: {
                     Image(systemName: "magnifyingglass")
                 }
             }
             
             // Empty Trash button - only in Trash category
-            if selectedCategoryID == Category.trashID {
+            if viewModel.selectedCategoryID == Category.trashID {
                 Button {
-                    showEmptyTrashConfirmation = true
+                    viewModel.showEmptyTrashConfirmation = true
                 } label: {
                     Label("Empty Trash", systemImage: "trash")
                 }
@@ -270,12 +226,12 @@ struct ContentView: View {
         }
         
         // IconView-specific toolbar items
-        if let iconIndex = store.icons.firstIndex(where: { $0.id == selectedIconID }) {
+        if let iconIndex = store.icons.firstIndex(where: { $0.id == viewModel.selectedIconID }) {
             let currentIcon = store.icons[iconIndex]
             
-            if !iconsGenerated {
+            if !viewModel.iconsGenerated {
                 Button {
-                    generateIcons()
+                    viewModel.generateIcons(store: store, profileStore: profileStore)
                 } label: {
                     Label("Generate Icons", systemImage: "sparkles.rectangle.stack")
                 }
@@ -283,7 +239,7 @@ struct ContentView: View {
                 .disabled(currentIcon.image == nil || currentIcon.outputDirectory == nil)
             } else {
                 Button {
-                    generateICNS()
+                    viewModel.generateICNS(store: store)
                 } label: {
                     Label("Save ICNS", systemImage: "arrow.down.doc.fill")
                 }
@@ -292,7 +248,7 @@ struct ContentView: View {
             
             if currentIcon.image != nil {
                 Button {
-                    showClearImageConfirmation = true
+                    viewModel.showClearImageConfirmation = true
                 } label: {
                     Label("Clear Image", systemImage: "trash")
                 }
@@ -301,15 +257,7 @@ struct ContentView: View {
         }
     }
     
-    // MARK: - Helper Functions
-    
-    private func bindingForSelectedIcon() -> Binding<Icon>? {
-        guard let selectedID = selectedIconID,
-              let index = store.icons.firstIndex(where: { $0.id == selectedID }) else {
-            return nil
-        }
-        return $store.icons[index]
-    }
+    // MARK: - Example of moved logic: addIconSheet
     
     private var addIconSheet: some View {
         VStack(spacing: 20) {
@@ -336,7 +284,7 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
                     .fontWeight(.medium)
                 
-                TextField("e.g. AppIcon", text: $newIconName)
+                TextField("e.g. AppIcon", text: $viewModel.newIconName)
                     .textFieldStyle(.roundedBorder)
                     .font(.body)
                     
@@ -346,7 +294,7 @@ struct ContentView: View {
                     .fontWeight(.medium)
                     .padding(.top, 4)
                 
-                Picker("Category", selection: $newIconCategory) {
+                Picker("Category", selection: $viewModel.newIconCategory) {
                     Text("Uncategorized").tag(UUID?.none)
                     ForEach(store.categories) { category in
                         Text(category.name).tag(Optional(category.id))
@@ -359,20 +307,17 @@ struct ContentView: View {
             HStack {
                 Spacer()
                 Button("Cancel", role: .cancel) {
-                    showAddIconSheet = false
-                    newIconName = ""
-                    newIconCategory = nil
+                    viewModel.showAddIconSheet = false
+                    viewModel.newIconName = ""
+                    viewModel.newIconCategory = nil
                 }
                 .keyboardShortcut(.cancelAction)
                 
                 Button("Create") {
-                    addIcon(named: newIconName, categoryID: newIconCategory)
-                    showAddIconSheet = false
-                    newIconName = ""
-                    newIconCategory = nil
+                    viewModel.addNewIcon(store: store)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(newIconName.trimmingCharacters(in: .whitespaces).isEmpty)
+                .disabled(viewModel.newIconName.trimmingCharacters(in: .whitespaces).isEmpty)
                 .keyboardShortcut(.defaultAction)
             }
             .padding(.top, 10)
@@ -380,173 +325,4 @@ struct ContentView: View {
         .padding(24)
         .frame(width: 350)
     }
-    
-    private func addIcon(named name: String, categoryID: UUID?) {
-        let trimmedName = name.trimmingCharacters(in: .whitespaces)
-        if trimmedName.isEmpty { return }
-        
-        var finalName = trimmedName
-        var counter = 2
-        while store.icons.contains(where: { $0.name == finalName }) {
-            finalName = "\(trimmedName) \(counter)"
-            counter += 1
-        }
-        
-        var newIcon = Icon(name: finalName, image: nil as NSImage?, outputDirectory: nil as URL?)
-        newIcon.categoryID = categoryID
-        store.icons.append(newIcon)
-        selectedIconID = newIcon.id
-    }
-    
-    private func moveIcons(from source: IndexSet, to destination: Int) {
-        store.icons.move(fromOffsets: source, toOffset: destination)
-    }
-    
-    private func deleteIcon() {
-        if let selectedID = selectedIconID,
-           let index = store.icons.firstIndex(where: { $0.id == selectedID }) {
-            // Use store method to handle trash logic
-            store.removeIcon(at: index)
-            
-            // Selection logic: if item moved to trash (hidden), we need to select something else
-            // If we are in Trash view, it might be permanently deleted.
-            // Simplified selection logic:
-            if store.filteredIcons.isEmpty {
-                 selectedIconID = nil
-            } else {
-                 // Try to select next or previous from filtered list?
-                 // Since store.icons changes could be complex (reordering), just deselect for now or keep generic logic
-                 // If the icon is still in store.icons (just trashed) but we are filtering it out, we should deselect it.
-                 selectedIconID = nil
-            }
-        }
-    }
-    
-    // Add this computed property
-    private var currentIconName: String {
-        guard let selectedID = selectedIconID,
-              let iconIndex = store.icons.firstIndex(where: { $0.id == selectedID }) else {
-            return "ICNS"
-        }
-        return store.icons[iconIndex].name
-    }
-    
-    private var iconsForSelectedCategory: [Icon] {
-        if let categoryID = selectedCategoryID {
-            if categoryID == Category.allIconsID {
-                return store.icons.filter { !$0.isTrashed && (toolbarSearchText.isEmpty || $0.name.localizedCaseInsensitiveContains(toolbarSearchText)) }
-            } else if categoryID == Category.uncategorizedID {
-                return store.icons.filter { $0.categoryID == nil && !$0.isTrashed && (toolbarSearchText.isEmpty || $0.name.localizedCaseInsensitiveContains(toolbarSearchText)) }
-            } else if categoryID == Category.trashID {
-                return store.icons.filter { $0.isTrashed && (toolbarSearchText.isEmpty || $0.name.localizedCaseInsensitiveContains(toolbarSearchText)) }
-            } else if let category = store.categories.first(where: { $0.id == categoryID }) {
-                // store.icons(for:) handles basic filtering, but we need to apply search on top
-                let icons = store.icons(for: category)
-                if toolbarSearchText.isEmpty { return icons }
-                return icons.filter { $0.name.localizedCaseInsensitiveContains(toolbarSearchText) }
-            }
-        }
-        // Default to All Icons
-        return store.icons.filter { !$0.isTrashed && (toolbarSearchText.isEmpty || $0.name.localizedCaseInsensitiveContains(toolbarSearchText)) }
-    }
-    
-    private var categoryTitle: String {
-        if let categoryID = selectedCategoryID {
-            if categoryID == Category.allIconsID {
-                return "All Icons"
-            } else if categoryID == Category.uncategorizedID {
-                return "Uncategorized"
-            } else if categoryID == Category.trashID {
-                return "Trash"
-            } else if let category = store.categories.first(where: { $0.id == categoryID }) {
-                return category.name
-            }
-        }
-        return "All Icons"
-    }
-    
-    // MARK: - Generation Functions
-    
-    private func generateIcons() {
-        guard let selectedID = selectedIconID,
-              let index = store.icons.firstIndex(where: { $0.id == selectedID }) else { return }
-        
-        let icon = store.icons[index]
-        
-        guard let imageData = icon.image,
-              let image = NSImage(data: imageData),
-              let outputDirectoryString = icon.outputDirectory,
-              let outputDirectoryURL = URL(string: outputDirectoryString)
-        else { return }
-        
-        let accessGranted = outputDirectoryURL.startAccessingSecurityScopedResource()
-        
-        if !accessGranted {
-            self.alertMessage = "Access to the directory was denied. Select the output directory and try again."
-            self.alertTitle = "Error"
-            self.showAlert = true
-            return
-        }
-        
-        // Get selected profile or use default
-        let profile = profileStore.getProfile(byID: icon.selectedProfileID)
-        
-        let result = ImageGenerationService.shared.generateIcons(
-            from: image,
-            outputDirectory: outputDirectoryURL,
-            profile: profile,
-            iconName: icon.name
-        )
-        
-        outputDirectoryURL.stopAccessingSecurityScopedResource()
-        
-        switch result {
-        case .success(let folderURL):
-            self.alertMessage = "Icons have been successfully created at \(folderURL.path)!"
-            self.alertTitle = "Success"
-            self.iconsGenerated = true
-        case .failure(let error):
-            self.alertMessage = "Error creating icons: \(error.localizedDescription)"
-            self.alertTitle = "Error"
-        }
-        
-        self.showAlert = true
-    }
-    
-    private func generateICNS() {
-        guard let selectedID = selectedIconID,
-              let index = store.icons.firstIndex(where: { $0.id == selectedID }) else { return }
-        
-        let icon = store.icons[index]
-        
-        guard let outputDirectoryString = icon.outputDirectory,
-              let outputDirectoryURL = URL(string: outputDirectoryString)
-        else { return }
-        
-        let accessGranted = outputDirectoryURL.startAccessingSecurityScopedResource()
-        
-        if !accessGranted {
-            self.alertMessage = "Access to the directory was denied. Select the output directory and try again."
-            self.alertTitle = "Error"
-            self.showAlert = true
-            return
-        }
-        
-        let result = ImageGenerationService.shared.generateICNS(from: icon.name, inside: outputDirectoryURL)
-        
-        outputDirectoryURL.stopAccessingSecurityScopedResource()
-        
-        switch result {
-        case .success(let icnsURL):
-             self.alertMessage = "ICNS file has been successfully created at \(icnsURL.path)!"
-             self.alertTitle = "Success"
-        case .failure(let error):
-            self.alertMessage = "Failed to create ICNS file. Error: \(error.localizedDescription)"
-            self.alertTitle = "Error"
-        }
-        
-        self.showAlert = true
-    }
-    
-
 }

@@ -48,6 +48,12 @@ class ImageStorageService {
     
     func loadImage(id: String) -> Data? {
         let fileURL = imagesDirectory.appendingPathComponent(id)
+        
+        // Check if file exists to avoid noisy errors during deletion/race conditions
+        if !fileManager.fileExists(atPath: fileURL.path) {
+            return nil
+        }
+        
         do {
             let data = try Data(contentsOf: fileURL)
             return data

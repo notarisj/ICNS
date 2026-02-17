@@ -413,16 +413,18 @@ struct CategorySidebarView: View {
         Binding(
             get: { selectedIconID ?? selectedCategoryID },
             set: { newValue in
-                if let uuid = newValue {
-                    if store.icons.contains(where: { $0.id == uuid }) {
-                        selectedIconID = uuid
+                DispatchQueue.main.async {
+                    if let uuid = newValue {
+                        if store.icons.contains(where: { $0.id == uuid }) {
+                            selectedIconID = uuid
+                        } else {
+                            selectedIconID = nil
+                            selectedCategoryID = uuid
+                        }
                     } else {
                         selectedIconID = nil
-                        selectedCategoryID = uuid
+                        selectedCategoryID = nil
                     }
-                } else {
-                    selectedIconID = nil
-                    selectedCategoryID = nil
                 }
             }
         )
