@@ -34,11 +34,42 @@ class IconStore: ObservableObject {
         }
     }
     
+    private var cancellables = Set<AnyCancellable>()
+    private let saveIconsSubject = PassthroughSubject<Void, Never>()
+    private let saveCategoriesSubject = PassthroughSubject<Void, Never>()
+    
     init() {
         loadIcons()
         loadCategories()
         ensureDefaultCategory()
         checkMigrationRequirements()
+        setupPersistence()
+    }
+    
+    private func setupPersistence() {
+        // Debounce icon saves
+        saveIconsSubject
+            .debounce(for: .seconds(1.0), scheduler: RunLoop.main)
+            .sink { [weak self] in
+                guard let self = self else { return }
+                let iconsSnapshot = self.icons
+                Task.detached(priority: .background) {
+                    self.persistIcons(iconsSnapshot)
+                }
+            }
+            .store(in: &cancellables)
+            
+        // Debounce category saves
+        saveCategoriesSubject
+            .debounce(for: .seconds(1.0), scheduler: RunLoop.main)
+            .sink { [weak self] in
+                guard let self = self else { return }
+                let categoriesSnapshot = self.categories
+                Task.detached(priority: .background) {
+                    self.persistCategories(categoriesSnapshot)
+                }
+            }
+            .store(in: &cancellables)
     }
     
     // MARK: - Migration
@@ -143,8 +174,12 @@ class IconStore: ObservableObject {
     }
     
     private func saveIcons() {
+        saveIconsSubject.send()
+    }
+    
+    private func persistIcons(_ iconsToSave: [Icon]) {
         do {
-            let iconsData = try JSONEncoder().encode(icons)
+            let iconsData = try JSONEncoder().encode(iconsToSave)
             UserDefaults.standard.set(iconsData, forKey: "icons")
         } catch {
             Logger.data.error("Error encoding icons: \(error, privacy: .public)")
@@ -163,8 +198,12 @@ class IconStore: ObservableObject {
     }
     
     private func saveCategories() {
+        saveCategoriesSubject.send()
+    }
+    
+    private func persistCategories(_ categoriesToSave: [Category]) {
         do {
-            let categoriesData = try JSONEncoder().encode(categories)
+            let categoriesData = try JSONEncoder().encode(categoriesToSave)
             UserDefaults.standard.set(categoriesData, forKey: "categories")
         } catch {
             Logger.data.error("Error encoding categories: \(error, privacy: .public)")

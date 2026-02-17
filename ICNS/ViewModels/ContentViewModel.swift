@@ -113,15 +113,10 @@ class ContentViewModel: ObservableObject {
               let index = store.icons.firstIndex(where: { $0.id == selectedID }) else { return }
         
         let icon = store.icons[index]
+        let imageID = icon.imageID
+        let legacyData = icon.legacyImageData
         
-        guard let imageData = icon.image,
-              let image = NSImage(data: imageData) else {
-            self.alertMessage = "No master image found for this icon."
-            self.alertTitle = "Error"
-            self.showAlert = true
-            return
-        }
-        
+        // Resolve URL on main thread (usually fast enough, but can be moved if needed)
         var targetURL: URL?
         var accessGranted = false
         
@@ -162,9 +157,6 @@ class ContentViewModel: ObservableObject {
         guard let outputURL = targetURL else { return }
         
         if !accessGranted {
-            // Check if we can write without explicit startAccessing (sometimes works if sandboxed correctly for user-selected, but rare across value types)
-            // But usually if startAccessing fails, we have no access.
-            // Let's assume failure if we couldn't start accessing.
              self.alertMessage = "Access to the directory was denied. Please re-select the output directory."
              self.alertTitle = "Error"
              self.showAlert = true
@@ -175,7 +167,28 @@ class ContentViewModel: ObservableObject {
         let profile = profileStore.getProfile(byID: icon.selectedProfileID)
         let iconName = icon.name
         
-        Task {
+        // Move image loading and generation to background
+        Task.detached(priority: .userInitiated) {
+             // 1. Load Image (Background)
+             var nsImage: NSImage?
+             
+             if let id = imageID, let data = ImageStorageService.shared.loadImage(id: id) {
+                 nsImage = NSImage(data: data)
+             } else if let data = legacyData {
+                 nsImage = NSImage(data: data)
+             }
+             
+             guard let image = nsImage else {
+                 await MainActor.run {
+                     self.alertMessage = "No master image found for this icon."
+                     self.alertTitle = "Error"
+                     self.showAlert = true
+                     outputURL.stopAccessingSecurityScopedResource()
+                 }
+                 return
+             }
+             
+             // 2. Generate (Background)
             let result = await ImageGenerationService.shared.generateIcons(
                 from: image,
                 outputDirectory: outputURL,
