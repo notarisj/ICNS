@@ -121,6 +121,117 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		055B5F352F43FF5800E8F8D4 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				055B5F412F43FFDB00E8F8D4 /* Inspector */,
+				055B5F402F43FFD400E8F8D4 /* Detail */,
+				055B5F3F2F43FFD000E8F8D4 /* Grid */,
+				055B5F3E2F43FFCA00E8F8D4 /* Sidebar */,
+				055B5F3D2F43FFC600E8F8D4 /* Main */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		055B5F362F43FF6200E8F8D4 /* Sheets */ = {
+			isa = PBXGroup;
+			children = (
+				0599CC102F113BF60002A5C0 /* ExportProfilesView.swift */,
+				0599CC112F113BF60002A5C0 /* ProfileEditorSheet.swift */,
+				AA0000062F200000000000A6 /* CategoryEditorSheet.swift */,
+			);
+			path = Sheets;
+			sourceTree = "<group>";
+		};
+		055B5F372F43FF6800E8F8D4 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				0599CC122F113BF60002A5C0 /* ProfilePicker.swift */,
+				055B5F212F43F17B00E8F8D4 /* SearchFieldView.swift */,
+				AA0000082F200000000000A8 /* SFSymbolPickerView.swift */,
+				AA00000A2F200000000000AA /* ColorPickerView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		055B5F382F43FF7100E8F8D4 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				0599CC0F2F113BF60002A5C0 /* ExportProfile.swift */,
+				05586F3C2BEA368300BD75E7 /* Icon.swift */,
+				AA0000002F200000000000A0 /* Category.swift */,
+				AA0000022F200000000000A2 /* CategoryColor.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		055B5F392F43FF7600E8F8D4 /* Stores */ = {
+			isa = PBXGroup;
+			children = (
+				0599CC0D2F113BD10002A5C0 /* ProfileStore.swift */,
+				058A581A2F0C440100A117B0 /* IconStore.swift */,
+			);
+			path = Stores;
+			sourceTree = "<group>";
+		};
+		055B5F3A2F43FF7C00E8F8D4 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				05B6ECC62F2BDA0A005F2139 /* MenuCommands.swift */,
+				A8698A796C20D2A8FEE04447 /* FocusedValues+ICNS.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		055B5F3B2F43FF8600E8F8D4 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				05586F402BEA377300BD75E7 /* NSImage+Extensions.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		055B5F3D2F43FFC600E8F8D4 /* Main */ = {
+			isa = PBXGroup;
+			children = (
+				05B6ECC22F2BAC6B005F2139 /* WelcomeView.swift */,
+				0572ED352B802E2700B9A2EB /* ContentView.swift */,
+			);
+			path = Main;
+			sourceTree = "<group>";
+		};
+		055B5F3E2F43FFCA00E8F8D4 /* Sidebar */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000042F200000000000A4 /* CategorySidebarView.swift */,
+			);
+			path = Sidebar;
+			sourceTree = "<group>";
+		};
+		055B5F3F2F43FFD000E8F8D4 /* Grid */ = {
+			isa = PBXGroup;
+			children = (
+				AA00000C2F200000000000AC /* IconGridView.swift */,
+			);
+			path = Grid;
+			sourceTree = "<group>";
+		};
+		055B5F402F43FFD400E8F8D4 /* Detail */ = {
+			isa = PBXGroup;
+			children = (
+				05586F3E2BEA36E900BD75E7 /* IconView.swift */,
+			);
+			path = Detail;
+			sourceTree = "<group>";
+		};
+		055B5F412F43FFDB00E8F8D4 /* Inspector */ = {
+			isa = PBXGroup;
+			children = (
+				0549D61D2D2BEA94000C3808 /* InspectorView.swift */,
+			);
+			path = Inspector;
+			sourceTree = "<group>";
+		};
 		0572ED272B802E2700B9A2EB = {
 			isa = PBXGroup;
 			children = (
@@ -144,35 +255,20 @@
 		0572ED322B802E2700B9A2EB /* ICNS */ = {
 			isa = PBXGroup;
 			children = (
+				055B5F3B2F43FF8600E8F8D4 /* Extensions */,
+				055B5F3A2F43FF7C00E8F8D4 /* Utilities */,
+				055B5F392F43FF7600E8F8D4 /* Stores */,
+				055B5F382F43FF7100E8F8D4 /* Models */,
+				055B5F372F43FF6800E8F8D4 /* Components */,
+				055B5F362F43FF6200E8F8D4 /* Sheets */,
+				055B5F352F43FF5800E8F8D4 /* Views */,
 				055395212F3F3FF60012C9BC /* Info.plist */,
 				05B6ECCD2F2C06DE005F2139 /* Services */,
-				05B6ECC62F2BDA0A005F2139 /* MenuCommands.swift */,
-				05B6ECC22F2BAC6B005F2139 /* WelcomeView.swift */,
-				0599CC0F2F113BF60002A5C0 /* ExportProfile.swift */,
-				0599CC102F113BF60002A5C0 /* ExportProfilesView.swift */,
-				0599CC112F113BF60002A5C0 /* ProfileEditorSheet.swift */,
-				0599CC122F113BF60002A5C0 /* ProfilePicker.swift */,
-				0599CC0D2F113BD10002A5C0 /* ProfileStore.swift */,
-				058A581A2F0C440100A117B0 /* IconStore.swift */,
-				0572ED332B802E2700B9A2EB /* ICNSApp.swift */,
-				0572ED352B802E2700B9A2EB /* ContentView.swift */,
-				05586F3C2BEA368300BD75E7 /* Icon.swift */,
-				05586F3E2BEA36E900BD75E7 /* IconView.swift */,
 				0572ED372B802E2900B9A2EB /* Assets.xcassets */,
 				0572ED3C2B802E2900B9A2EB /* ICNS.entitlements */,
 				0572ED392B802E2900B9A2EB /* Preview Content */,
-				05586F402BEA377300BD75E7 /* NSImage+Extensions.swift */,
-				0549D61D2D2BEA94000C3808 /* InspectorView.swift */,
-				AA0000002F200000000000A0 /* Category.swift */,
-				055B5F212F43F17B00E8F8D4 /* SearchFieldView.swift */,
-				AA0000022F200000000000A2 /* CategoryColor.swift */,
-				AA0000042F200000000000A4 /* CategorySidebarView.swift */,
-				AA0000062F200000000000A6 /* CategoryEditorSheet.swift */,
-				AA0000082F200000000000A8 /* SFSymbolPickerView.swift */,
-				AA00000A2F200000000000AA /* ColorPickerView.swift */,
-				AA00000C2F200000000000AC /* IconGridView.swift */,
 				0553951F2F3F3FE90012C9BC /* ICNSIcon.icon */,
-				A8698A796C20D2A8FEE04447 /* FocusedValues+ICNS.swift */,
+				0572ED332B802E2700B9A2EB /* ICNSApp.swift */,
 			);
 			path = ICNS;
 			sourceTree = "<group>";
