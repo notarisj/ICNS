@@ -41,6 +41,16 @@ class ContentViewModel: ObservableObject {
     
     // MARK: - Actions
     
+    func openAddIconSheet(store: IconStore) {
+        if let categoryID = selectedCategoryID,
+           store.categories.contains(where: { $0.id == categoryID }) {
+            newIconCategory = categoryID
+        } else {
+            newIconCategory = nil
+        }
+        showAddIconSheet = true
+    }
+    
     func addNewIcon(store: IconStore) {
         let trimmedName = newIconName.trimmingCharacters(in: .whitespaces)
         guard !trimmedName.isEmpty else { return }
@@ -104,18 +114,60 @@ class ContentViewModel: ObservableObject {
         let icon = store.icons[index]
         
         guard let imageData = icon.image,
-              let image = NSImage(data: imageData),
-              let outputDirectoryString = icon.outputDirectory,
-              let outputDirectoryURL = URL(string: outputDirectoryString)
-        else { return }
-        
-        let accessGranted = outputDirectoryURL.startAccessingSecurityScopedResource()
-        
-        if !accessGranted {
-            self.alertMessage = "Access to the directory was denied. Select the output directory and try again."
+              let image = NSImage(data: imageData) else {
+            self.alertMessage = "No master image found for this icon."
             self.alertTitle = "Error"
             self.showAlert = true
             return
+        }
+        
+        var targetURL: URL?
+        var accessGranted = false
+        
+        // Try resolving bookmark first
+        if let bookmarkData = icon.bookmarkData {
+            var isStale = false
+            do {
+                targetURL = try URL(resolvingBookmarkData: bookmarkData,
+                                  options: .withSecurityScope,
+                                  relativeTo: nil,
+                                  bookmarkDataIsStale: &isStale)
+                
+                if let url = targetURL {
+                    accessGranted = url.startAccessingSecurityScopedResource()
+                }
+            } catch {
+                print("Failed to resolve bookmark: \(error)")
+            }
+        }
+        
+        // Fallback or verify URL
+        if targetURL == nil {
+            if let outputDirectoryString = icon.outputDirectory,
+               let url = URL(string: outputDirectoryString) {
+                targetURL = url
+                // Try access anyway (might work if session is fresh)
+                if !accessGranted {
+                     accessGranted = url.startAccessingSecurityScopedResource()
+                }
+            } else {
+                self.alertMessage = "No output directory selected."
+                self.alertTitle = "Error"
+                self.showAlert = true
+                return
+            }
+        }
+        
+        guard let outputURL = targetURL else { return }
+        
+        if !accessGranted {
+            // Check if we can write without explicit startAccessing (sometimes works if sandboxed correctly for user-selected, but rare across value types)
+            // But usually if startAccessing fails, we have no access.
+            // Let's assume failure if we couldn't start accessing.
+             self.alertMessage = "Access to the directory was denied. Please re-select the output directory."
+             self.alertTitle = "Error"
+             self.showAlert = true
+             return
         }
         
         // Get selected profile or use default
@@ -123,12 +175,12 @@ class ContentViewModel: ObservableObject {
         
         let result = ImageGenerationService.shared.generateIcons(
             from: image,
-            outputDirectory: outputDirectoryURL,
+            outputDirectory: outputURL,
             profile: profile,
             iconName: icon.name
         )
         
-        outputDirectoryURL.stopAccessingSecurityScopedResource()
+        outputURL.stopAccessingSecurityScopedResource()
         
         switch result {
         case .success(let folderURL):
@@ -149,22 +201,54 @@ class ContentViewModel: ObservableObject {
         
         let icon = store.icons[index]
         
-        guard let outputDirectoryString = icon.outputDirectory,
-              let outputDirectoryURL = URL(string: outputDirectoryString)
-        else { return }
+        var targetURL: URL?
+        var accessGranted = false
         
-        let accessGranted = outputDirectoryURL.startAccessingSecurityScopedResource()
+        // Try resolving bookmark first
+        if let bookmarkData = icon.bookmarkData {
+            var isStale = false
+            do {
+                targetURL = try URL(resolvingBookmarkData: bookmarkData,
+                                  options: .withSecurityScope,
+                                  relativeTo: nil,
+                                  bookmarkDataIsStale: &isStale)
+                
+                if let url = targetURL {
+                    accessGranted = url.startAccessingSecurityScopedResource()
+                }
+            } catch {
+                 print("Failed to resolve bookmark: \(error)")
+            }
+        }
+        
+        // Fallback
+        if targetURL == nil {
+             if let outputDirectoryString = icon.outputDirectory,
+                let url = URL(string: outputDirectoryString) {
+                 targetURL = url
+                 if !accessGranted {
+                     accessGranted = url.startAccessingSecurityScopedResource()
+                 }
+             } else {
+                 self.alertMessage = "No output directory selected."
+                 self.alertTitle = "Error"
+                 self.showAlert = true
+                 return
+             }
+         }
+         
+         guard let outputURL = targetURL else { return }
         
         if !accessGranted {
-            self.alertMessage = "Access to the directory was denied. Select the output directory and try again."
+            self.alertMessage = "Access to the directory was denied. Please re-select the output directory."
             self.alertTitle = "Error"
             self.showAlert = true
             return
         }
         
-        let result = ImageGenerationService.shared.generateICNS(from: icon.name, inside: outputDirectoryURL)
+        let result = ImageGenerationService.shared.generateICNS(from: icon.name, inside: outputURL)
         
-        outputDirectoryURL.stopAccessingSecurityScopedResource()
+        outputURL.stopAccessingSecurityScopedResource()
         
         switch result {
         case .success(let icnsURL):

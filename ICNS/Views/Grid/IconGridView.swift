@@ -61,8 +61,11 @@ struct IconGridView: View {
                                         selectedIconID = nil
                                     }
                                 } else {
-                                    didNavigateFromGrid = true
-                                    selectedIconID = icon.id
+                                    // Async to avoid "Publishing changes from within view updates" error
+                                    DispatchQueue.main.async {
+                                        didNavigateFromGrid = true
+                                        selectedIconID = icon.id
+                                    }
                                 }
                             }
                             .contextMenu {

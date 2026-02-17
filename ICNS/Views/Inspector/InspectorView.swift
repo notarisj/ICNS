@@ -20,7 +20,19 @@ struct InspectorView: View {
             Section("Identity") {
                 TextField("Name", text: $icon.name)
                 
-                Picker("Category", selection: $icon.categoryID) {
+                Picker("Category", selection: Binding(
+                    get: {
+                        // If category is invalid (e.g. All Icons ID), treat as nil
+                        if let id = icon.categoryID,
+                           !iconStore.categories.contains(where: { $0.id == id }) {
+                            return nil
+                        }
+                        return icon.categoryID
+                    },
+                    set: { newValue in
+                        icon.categoryID = newValue
+                    }
+                )) {
                     Text("None").tag(nil as UUID?)
                     ForEach(iconStore.categories) { category in
                         Text(category.name).tag(category.id as UUID?)
@@ -116,19 +128,17 @@ struct InspectorView: View {
         openPanel.begin { (result) in
             if result == .OK {
                 if let url = openPanel.url {
-                    let accessGranted = url.startAccessingSecurityScopedResource()
-                    if accessGranted {
-                        icon.outputDirectory = url.absoluteString
-                        do {
-                            let bookmarkData = try url.bookmarkData(options: .withSecurityScope,
-                                                                    includingResourceValuesForKeys: nil,
-                                                                    relativeTo: nil)
-                            UserDefaults.standard.set(bookmarkData, forKey: "outputDirectoryBookmark")
-                        } catch {
-                            print("Failed to save bookmark data for \(url): \(error)")
-                        }
-                    } else {
-                        print("Access to the directory was denied.")
+                    // Update the directory path string
+                    icon.outputDirectory = url.absoluteString
+                    
+                    // Create a security-scoped bookmark to persist access
+                    do {
+                        let bookmarkData = try url.bookmarkData(options: .withSecurityScope,
+                                                                includingResourceValuesForKeys: nil,
+                                                                relativeTo: nil)
+                        icon.bookmarkData = bookmarkData
+                    } catch {
+                        print("Failed to create bookmark data for \(url): \(error)")
                     }
                 }
             }

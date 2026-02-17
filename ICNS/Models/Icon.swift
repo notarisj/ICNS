@@ -16,13 +16,14 @@ struct Icon: Hashable, Codable, Identifiable {
     var selectedProfileID: UUID?
     var categoryID: UUID?
     var isTrashed: Bool = false
+    var bookmarkData: Data? // Security-scoped bookmark for output directory
     
     // Legacy support: map the old "image" key to this property so we can decode old data.
     // We make it private(set) so we can check it during migration but not use it generally.
     var legacyImageData: Data?
     
     enum CodingKeys: String, CodingKey {
-        case id, name, imageID, outputDirectory, selectedProfileID, categoryID, isTrashed
+        case id, name, imageID, outputDirectory, selectedProfileID, categoryID, isTrashed, bookmarkData
         case legacyImageData = "image"
     }
     
@@ -100,6 +101,7 @@ struct Icon: Hashable, Codable, Identifiable {
         self.selectedProfileID = try container.decodeIfPresent(UUID.self, forKey: .selectedProfileID)
         self.categoryID = try container.decodeIfPresent(UUID.self, forKey: .categoryID)
         self.isTrashed = try container.decodeIfPresent(Bool.self, forKey: .isTrashed) ?? false
+        self.bookmarkData = try container.decodeIfPresent(Data.self, forKey: .bookmarkData)
         self.legacyImageData = try container.decodeIfPresent(Data.self, forKey: .legacyImageData)
     }
 }

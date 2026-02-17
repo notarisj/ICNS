@@ -20,6 +20,10 @@ struct CategorySidebarView: View {
     @State private var isUncategorizedExpanded = true
     @State private var searchText = ""
 
+    // Focused Value State Caches
+    @State private var cachedEditCategoryAction: (() -> Void)?
+    @State private var cachedRenameItemAction: (() -> Void)?
+    @State private var cachedDeleteItemAction: (() -> Void)?
     
     // Icon Context Menu States
     @State private var iconToDelete: Icon? = nil
@@ -66,6 +70,7 @@ struct CategorySidebarView: View {
         .searchable(text: $searchText, isPresented: $isSidebarSearching, placement: .sidebar, prompt: "Search")
         .onChange(of: searchText) { _, newValue in
             store.updateSearchText(newValue)
+            validateSelection()
         }
         .scrollContentBackground(.hidden)
         .sheet(isPresented: $showCategoryEditor) {
@@ -125,11 +130,14 @@ struct CategorySidebarView: View {
         } message: {
             Text("Are you sure you want to permanently erase the items in the Trash? This action cannot be undone.")
         }
+        // Update actions when selection changes
+        .onChange(of: selectedIconID) { _, _ in updateActions() }
+        .onChange(of: selectedCategoryID) { _, _ in updateActions() }
+        .onAppear { updateActions() }
 
-
-    .focusedValue(\.editCategoryAction, editCategoryAction)
-    .focusedValue(\.renameItemAction, renameItemAction)
-    .focusedValue(\.deleteItemAction, deleteItemAction)
+    .focusedValue(\.editCategoryAction, cachedEditCategoryAction)
+    .focusedValue(\.renameItemAction, cachedRenameItemAction)
+    .focusedValue(\.deleteItemAction, cachedDeleteItemAction)
     }
     
     // MARK: - All Icons Row
@@ -158,94 +166,76 @@ struct CategorySidebarView: View {
     
     // MARK: - Uncategorized Section
     
+    @ViewBuilder
     private var uncategorizedSection: some View {
-        // Use searchedIcons from store and ignore category ID checks if we are searching (since we want global results?)
-        // Wait, "Uncategorized" section should strictly show uncategorized icons matching search.
-        
+        // Use searchedIcons from store and ignore category ID checks if we are searching
         let uncategorizedIcons = store.searchedIcons.filter { icon in
              icon.categoryID == nil || !store.categories.contains(where: { $0.id == icon.categoryID })
         }
         
-        // Hide section if searching and no matches
+        // Only show if we have items or if we are not searching
         if !searchText.isEmpty && uncategorizedIcons.isEmpty {
-            return AnyView(EmptyView())
-        }
-        
-        if uncategorizedIcons.isEmpty {
-            return AnyView(
-                HStack(spacing: 8) {
-                    Image(systemName: "tray")
-                        .foregroundStyle(.gray)
-                        .font(.system(size: 16))
-                    
-                    Text("Uncategorized")
-                        .font(.body)
-                    
-                    Spacer()
-                    
-                    Text("0")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.secondary.opacity(0.15))
-                        .cornerRadius(8)
-                }
-                .padding(.vertical, 4)
-                .padding(.leading, 4) // Indent to match DisclosureGroup label padding roughly if needed, or check alignment
-                // Actually DisclosureGroup label aligns left. Let's keep it simple.
-                // Wait, default DisclosureGroup arrow is on the left.
-                // If I remove DisclosureGroup, I need to align the content so it looks like a leaf node or just a section header?
-                // The user says "down has the expansion arrow". 
-                // If it's empty, it shouldn't be expandable.
-                // So just showing the Hstack is correct.
-                .tag(uncategorizedID)
-            )
+             EmptyView()
+        } else if uncategorizedIcons.isEmpty {
+            // Empty Uncategorized Row
+            HStack(spacing: 8) {
+                Image(systemName: "tray")
+                    .foregroundStyle(.gray)
+                    .font(.system(size: 16))
+                
+                Text("Uncategorized")
+                    .font(.body)
+                
+                Spacer()
+                
+                Text("0")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.secondary.opacity(0.15))
+                    .cornerRadius(8)
+            }
+            .padding(.vertical, 4)
+            .padding(.leading, 4)
+            .tag(uncategorizedID)
         } else {
-            return AnyView(
-                DisclosureGroup(
-                    isExpanded: Binding(
-                        get: { isUncategorizedExpanded || !searchText.isEmpty },
-                        set: { isUncategorizedExpanded = $0 }
-                    ),
-                    content: {
-                        ForEach(uncategorizedIcons) { icon in
-                            SidebarIconRow(
-                                icon: icon,
-                                onRename: promptRename,
-                                onDelete: promptDelete
-                            )
-                        }
-                    },
-                    label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "tray")
-                                .foregroundStyle(.gray)
-                                .font(.system(size: 16))
-                            
-                            Text("Uncategorized")
-                                .font(.body)
-                            
-                            Spacer()
-                            
-                            // Re-calculate or use local variable?
-                            // reusing local variable `uncategorizedIcons` count is better since it's already filtered.
-                            // But original code used `store.icons` filter again.
-                            // Let's use `uncategorizedIcons.count` which is derived from `searchedIcons`.
-                            // Wait, if search text is empty, `searchedIcons` is all icons (minus trash).
-                            // So `uncategorizedIcons.count` is correct.
-                            
-                            Text("\(uncategorizedIcons.count)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color.secondary.opacity(0.15))
-                                .cornerRadius(8)
-                        }
-                        .tag(uncategorizedID)
+            // Expandable Uncategorized Section
+            DisclosureGroup(
+                isExpanded: Binding(
+                    get: { isUncategorizedExpanded || !searchText.isEmpty },
+                    set: { isUncategorizedExpanded = $0 }
+                ),
+                content: {
+                    ForEach(uncategorizedIcons) { icon in
+                        SidebarIconRow(
+                            icon: icon,
+                            onRename: promptRename,
+                             onDelete: promptDelete
+                        )
                     }
-                )
+                },
+                label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "tray")
+                            .foregroundStyle(.gray)
+                            .font(.system(size: 16))
+                        
+                        Text("Uncategorized")
+                            .font(.body)
+                        
+                        Spacer()
+                        
+                        Text("\(uncategorizedIcons.count)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.secondary.opacity(0.15))
+                            .cornerRadius(8)
+                    }
+                    .tag(uncategorizedID)
+                }
             )
         }
     }
@@ -282,17 +272,9 @@ struct CategorySidebarView: View {
             }
             .disabled(trashCount == 0)
         }
-        // TrashDropDelegate helper needed here, ensuring we don't compile error until it's added.
-        // But since I add them sequentially, I might need to comment out the delegate usage or add delegate first?
-        // Actually, Swift parser might tolerate out of order in same file? No, delegate usage is in the property.
-        // Wait, if I add trashRow first it references TrashDropDelegate. If TrashDropDelegate is not there, compile error.
-        // But I'm just editing text. The compiler isn't running in between.
-        // However, for safety, I should probably add the delegate first? 
-        // No, I'll just add use onDrop with the delegate.
         .onDrop(of: [.text], delegate: TrashDropDelegate(store: store))
     }
     
-
     
     // MARK: - Category Row
     
@@ -403,11 +385,72 @@ struct CategorySidebarView: View {
         ))
     }
     
-    // MARK: - Icon Row
-    
     // MARK: - Helper Functions
     
-    // MARK: - Focused Value Actions
+    private func updateActions() {
+        // Edit Category
+        if selectedIconID == nil,
+           let categoryID = selectedCategoryID,
+           let category = store.categories.first(where: { $0.id == categoryID }) {
+            let allIconsID = Category.allIconsID
+            let uncategorizedID = Category.uncategorizedID
+            
+            if categoryID != allIconsID && categoryID != uncategorizedID {
+                cachedEditCategoryAction = {
+                    editingCategory = category
+                    showCategoryEditor = true
+                }
+            } else {
+                cachedEditCategoryAction = nil
+            }
+        } else {
+            cachedEditCategoryAction = nil
+        }
+        
+        // Rename Item
+        if let iconID = selectedIconID,
+           let icon = store.icons.first(where: { $0.id == iconID }) {
+            cachedRenameItemAction = { promptRename(icon) }
+        } else if selectedIconID == nil,
+                  let categoryID = selectedCategoryID,
+                  let category = store.categories.first(where: { $0.id == categoryID }) {
+            let allIconsID = Category.allIconsID
+            let uncategorizedID = Category.uncategorizedID
+            
+            if categoryID != allIconsID && categoryID != uncategorizedID {
+                cachedRenameItemAction = {
+                    editingCategory = category
+                    showCategoryEditor = true
+                }
+            } else {
+                cachedRenameItemAction = nil
+            }
+        } else {
+            cachedRenameItemAction = nil
+        }
+        
+        // Delete Item
+        if let iconID = selectedIconID,
+           let icon = store.icons.first(where: { $0.id == iconID }) {
+            cachedDeleteItemAction = { promptDelete(icon) }
+        } else if selectedIconID == nil,
+                  let categoryID = selectedCategoryID,
+                  let category = store.categories.first(where: { $0.id == categoryID }) {
+            let allIconsID = Category.allIconsID
+            let uncategorizedID = Category.uncategorizedID
+            
+            if categoryID != allIconsID && categoryID != uncategorizedID {
+                cachedDeleteItemAction = {
+                    categoryToDelete = category
+                    showDeleteConfirmation = true
+                }
+            } else {
+                cachedDeleteItemAction = nil
+            }
+        } else {
+            cachedDeleteItemAction = nil
+        }
+    }
     
     // MARK: - Helper Computeds
     
@@ -415,19 +458,36 @@ struct CategorySidebarView: View {
         Binding(
             get: { selectedIconID ?? selectedCategoryID },
             set: { newValue in
+                // Dispatch to main queue to avoid "Publishing changes from within view updates"
+                // when List updates selection during layout passes.
                 DispatchQueue.main.async {
+                    // Only act if value actually changed
+                    if newValue == (selectedIconID ?? selectedCategoryID) {
+                        return
+                    }
+                    
                     if let uuid = newValue {
+                        // Check if it's an icon by checking if it's in our known icon IDs
                         if store.icons.contains(where: { $0.id == uuid }) {
-                             didNavigateFromGrid = false
-                             selectedIconID = uuid
+                             if selectedIconID != uuid {
+                                 didNavigateFromGrid = false
+                                 selectedIconID = uuid
+                                 selectedCategoryID = nil
+                             }
                         } else {
-                            selectedIconID = nil
-                            selectedCategoryID = uuid
+                            // Must be a category
+                            if selectedCategoryID != uuid {
+                                selectedIconID = nil
+                                selectedCategoryID = uuid
+                            }
                         }
                     } else {
-                        selectedIconID = nil
-                        didNavigateFromGrid = false
-                        selectedCategoryID = nil
+                        // Deselect
+                        if selectedIconID != nil || selectedCategoryID != nil {
+                            selectedIconID = nil
+                            didNavigateFromGrid = false
+                            selectedCategoryID = nil
+                        }
                     }
                 }
             }
@@ -442,63 +502,46 @@ struct CategorySidebarView: View {
         }
     }
     
-    private var editCategoryAction: (() -> Void)? {
-        if selectedIconID == nil,
-           let categoryID = selectedCategoryID,
-           let category = store.categories.first(where: { $0.id == categoryID }) {
-            let allIconsID = Category.allIconsID
-            let uncategorizedID = Category.uncategorizedID
-            
-            if categoryID != allIconsID && categoryID != uncategorizedID {
-                return {
-                    editingCategory = category
-                    showCategoryEditor = true
+    /// Pre-emptively validates and clears selection if the item is no longer visible in the current search.
+    /// This prevents glitches where the List tries to update the selection asynchronously after the row disappears.
+    private func validateSelection() {
+        if searchText.isEmpty { return }
+        
+        // Check selected Icon
+        if let iconID = selectedIconID {
+            // If the icon is not in the searched results, deselect it immediately
+            if !store.searchedIcons.contains(where: { $0.id == iconID }) {
+                selectedIconID = nil
+            }
+        }
+        
+        // Check selected Category
+        if let categoryID = selectedCategoryID {
+            if categoryID == allIconsID || categoryID == uncategorizedID || categoryID == trashID {
+                // These rows are generally handled specially
+                if categoryID == uncategorizedID {
+                     // Check if uncategorized section is visible
+                     let hasUncategorized = store.searchedIcons.contains(where: { $0.categoryID == nil })
+                     // Note: The UI logic for hiding uncategorized is:
+                     // if !searchText.isEmpty && uncategorizedIcons.isEmpty { EmptyView() }
+                     if !hasUncategorized {
+                         selectedCategoryID = nil
+                     }
+                }
+                // All Icons and Trash are always visible or logic dependent?
+                // Trash logic from original code: Trash Row is in a Section.
+                // Wait, in filtered view, Trash might still be there.
+            } else {
+                // Custom Category
+                // Check if this category is in filteredCategories
+                let isVisible = filteredCategories.contains(where: { $0.id == categoryID })
+                if !isVisible {
+                    selectedCategoryID = nil
                 }
             }
         }
-        return nil
     }
     
-    private var renameItemAction: (() -> Void)? {
-        if let iconID = selectedIconID,
-           let icon = store.icons.first(where: { $0.id == iconID }) {
-            return { promptRename(icon) }
-        } else if selectedIconID == nil,
-                  let categoryID = selectedCategoryID,
-                  let category = store.categories.first(where: { $0.id == categoryID }) {
-            let allIconsID = Category.allIconsID
-            let uncategorizedID = Category.uncategorizedID
-            
-            if categoryID != allIconsID && categoryID != uncategorizedID {
-                return {
-                    editingCategory = category
-                    showCategoryEditor = true
-                }
-            }
-        }
-        return nil
-    }
-    
-    private var deleteItemAction: (() -> Void)? {
-        if let iconID = selectedIconID,
-           let icon = store.icons.first(where: { $0.id == iconID }) {
-            return { promptDelete(icon) }
-        } else if selectedIconID == nil,
-                  let categoryID = selectedCategoryID,
-                  let category = store.categories.first(where: { $0.id == categoryID }) {
-            let allIconsID = Category.allIconsID
-            let uncategorizedID = Category.uncategorizedID
-            
-            if categoryID != allIconsID && categoryID != uncategorizedID {
-                return {
-                    categoryToDelete = category
-                    showDeleteConfirmation = true
-                }
-            }
-        }
-        return nil
-    }
-
     private func moveCategories(from source: IndexSet, to destination: Int) {
         store.moveCategories(from: source, to: destination)
     }

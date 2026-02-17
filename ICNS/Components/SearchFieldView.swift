@@ -45,6 +45,11 @@ struct SearchFieldView: NSViewRepresentable {
         }
     }
     
+    static func dismantleNSView(_ nsView: MySearchField, coordinator: Coordinator) {
+        nsView.delegate = nil
+        coordinator.isValid = false
+    }
+    
     func makeCoordinator() -> Coordinator {
         Coordinator(text: $text, isSearching: $isSearching)
     }
@@ -53,6 +58,7 @@ struct SearchFieldView: NSViewRepresentable {
         @Binding var text: String
         @Binding var isSearching: Bool
         var hasFocused = false
+        var isValid = true
         
         init(text: Binding<String>, isSearching: Binding<Bool>) {
             _text = text
@@ -60,15 +66,25 @@ struct SearchFieldView: NSViewRepresentable {
         }
         
         func controlTextDidChange(_ obj: Notification) {
+            guard isValid else { return }
             if let searchField = obj.object as? NSSearchField {
-                text = searchField.stringValue
+                // Only update if actually changed to avoid redundant updates
+                if text != searchField.stringValue {
+                    let newValue = searchField.stringValue
+                    DispatchQueue.main.async {
+                        self.text = newValue
+                    }
+                }
             }
         }
         
         func controlTextDidEndEditing(_ obj: Notification) {
+            guard isValid else { return }
             // If empty when editing ends, collapse
             if text.isEmpty {
-                isSearching = false
+                DispatchQueue.main.async {
+                    self.isSearching = false
+                }
             }
         }
     }
@@ -84,7 +100,9 @@ class MySearchField: NSSearchField {
             stringValue = ""
             // Notify delegate manually since programmatic change doesn't always trigger it
             if let delegate = delegate {
-                delegate.controlTextDidChange?(Notification(name: NSControl.textDidChangeNotification, object: self))
+                DispatchQueue.main.async {
+                    delegate.controlTextDidChange?(Notification(name: NSControl.textDidChangeNotification, object: self))
+                }
             }
         }
     }

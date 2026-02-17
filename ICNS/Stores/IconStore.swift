@@ -79,7 +79,6 @@ class IconStore: ObservableObject {
             let iconsToMigrate = await MainActor.run { return self.icons }
             var updatedIcons = iconsToMigrate
             var changesMade = false
-            var successCount = 0
             
             // Create directory explicitly just in case
             // Accessing ImageStorageService here ensures the singleton is init'd and folder created
@@ -100,9 +99,12 @@ class IconStore: ObservableObject {
                 }
             }
             
+            let finalIcons = updatedIcons
+            let finalChangesMade = changesMade
+            
             await MainActor.run {
-                if changesMade {
-                    self.icons = updatedIcons
+                if finalChangesMade {
+                    self.icons = finalIcons
                     self.saveIcons() // Save the updated structure
                 }
                 self.migrationStatus = .completed

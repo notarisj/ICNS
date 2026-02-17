@@ -46,8 +46,7 @@ struct ContentView: View {
                 Text("Are you sure you want to permanently delete these items? This action cannot be undone.")
             }
             .onReceive(NotificationCenter.default.publisher(for: .newIconSet)) { _ in
-                viewModel.newIconCategory = viewModel.selectedCategoryID
-                viewModel.showAddIconSheet = true
+                viewModel.openAddIconSheet(store: store)
             }
             .alert(isPresented: $viewModel.showAlert) {
                 Alert(title: Text(viewModel.alertTitle), message: Text(viewModel.alertMessage), dismissButton: .default(Text("OK")))
@@ -241,8 +240,7 @@ struct ContentView: View {
             
             Menu {
                 Button {
-                    viewModel.newIconCategory = viewModel.selectedCategoryID
-                    viewModel.showAddIconSheet = true
+                    viewModel.openAddIconSheet(store: store)
                 } label: {
                     Label("New Icon Set", systemImage: "app.dashed")
                 }
