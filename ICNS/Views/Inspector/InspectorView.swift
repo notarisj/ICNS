@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import OSLog
 
 struct InspectorView: View {
     @Binding var icon: Icon
@@ -138,7 +139,7 @@ struct InspectorView: View {
                                                                 relativeTo: nil)
                         icon.bookmarkData = bookmarkData
                     } catch {
-                        print("Failed to create bookmark data for \(url): \(error)")
+                        Logger.ui.error("Failed to create bookmark data for \(url, privacy: .public): \(error, privacy: .public)")
                     }
                 }
             }

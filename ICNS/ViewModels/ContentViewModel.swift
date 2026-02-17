@@ -1,6 +1,7 @@
 
 import SwiftUI
 import Combine
+import OSLog
 
 @MainActor
 class ContentViewModel: ObservableObject {
@@ -137,7 +138,7 @@ class ContentViewModel: ObservableObject {
                     accessGranted = url.startAccessingSecurityScopedResource()
                 }
             } catch {
-                print("Failed to resolve bookmark: \(error)")
+                Logger.ui.error("Failed to resolve bookmark: \(error, privacy: .public)")
             }
         }
         
@@ -172,27 +173,32 @@ class ContentViewModel: ObservableObject {
         
         // Get selected profile or use default
         let profile = profileStore.getProfile(byID: icon.selectedProfileID)
+        let iconName = icon.name
         
-        let result = ImageGenerationService.shared.generateIcons(
-            from: image,
-            outputDirectory: outputURL,
-            profile: profile,
-            iconName: icon.name
-        )
-        
-        outputURL.stopAccessingSecurityScopedResource()
-        
-        switch result {
-        case .success(let folderURL):
-            self.alertMessage = "Icons have been successfully created at \(folderURL.path)!"
-            self.alertTitle = "Success"
-            self.iconsGenerated = true
-        case .failure(let error):
-            self.alertMessage = "Error creating icons: \(error.localizedDescription)"
-            self.alertTitle = "Error"
+        Task {
+            let result = await ImageGenerationService.shared.generateIcons(
+                from: image,
+                outputDirectory: outputURL,
+                profile: profile,
+                iconName: iconName
+            )
+            
+            outputURL.stopAccessingSecurityScopedResource()
+            
+            await MainActor.run {
+                switch result {
+                case .success(let folderURL):
+                    self.alertMessage = "Icons have been successfully created at \(folderURL.path)!"
+                    self.alertTitle = "Success"
+                    self.iconsGenerated = true
+                case .failure(let error):
+                    self.alertMessage = "Error creating icons: \(error.localizedDescription)"
+                    self.alertTitle = "Error"
+                }
+                
+                self.showAlert = true
+            }
         }
-        
-        self.showAlert = true
     }
     
     func generateICNS(store: IconStore) {
@@ -217,7 +223,7 @@ class ContentViewModel: ObservableObject {
                     accessGranted = url.startAccessingSecurityScopedResource()
                 }
             } catch {
-                 print("Failed to resolve bookmark: \(error)")
+                 Logger.ui.error("Failed to resolve bookmark: \(error, privacy: .public)")
             }
         }
         
@@ -246,20 +252,26 @@ class ContentViewModel: ObservableObject {
             return
         }
         
-        let result = ImageGenerationService.shared.generateICNS(from: icon.name, inside: outputURL)
+        let iconName = icon.name
         
-        outputURL.stopAccessingSecurityScopedResource()
-        
-        switch result {
-        case .success(let icnsURL):
-             self.alertMessage = "ICNS file has been successfully created at \(icnsURL.path)!"
-             self.alertTitle = "Success"
-        case .failure(let error):
-            self.alertMessage = "Failed to create ICNS file. Error: \(error.localizedDescription)"
-            self.alertTitle = "Error"
+        Task {
+            let result = await ImageGenerationService.shared.generateICNS(from: iconName, inside: outputURL)
+            
+            outputURL.stopAccessingSecurityScopedResource()
+            
+            await MainActor.run {
+                switch result {
+                case .success(let icnsURL):
+                     self.alertMessage = "ICNS file has been successfully created at \(icnsURL.path)!"
+                     self.alertTitle = "Success"
+                case .failure(let error):
+                    self.alertMessage = "Failed to create ICNS file. Error: \(error.localizedDescription)"
+                    self.alertTitle = "Error"
+                }
+                
+                self.showAlert = true
+            }
         }
-        
-        self.showAlert = true
     }
     
     // MARK: - Computed Helpers

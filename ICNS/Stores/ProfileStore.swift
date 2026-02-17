@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import OSLog
 
 class ProfileStore: ObservableObject {
     @Published var profiles: [ExportProfile] = [] {
@@ -36,7 +37,7 @@ class ProfileStore: ObservableObject {
                     profiles.insert(ExportProfile.createDefault(), at: 0)
                 }
             } catch {
-                print("Error decoding profiles: \(error)")
+                Logger.data.error("Error decoding profiles: \(error, privacy: .public)")
                 initializeDefaultProfile()
             }
         } else {
@@ -49,7 +50,7 @@ class ProfileStore: ObservableObject {
             let profilesData = try JSONEncoder().encode(profiles)
             UserDefaults.standard.set(profilesData, forKey: "exportProfiles")
         } catch {
-            print("Error encoding profiles: \(error)")
+            Logger.data.error("Error encoding profiles: \(error, privacy: .public)")
         }
     }
     

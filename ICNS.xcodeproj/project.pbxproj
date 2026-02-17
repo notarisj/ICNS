@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		053518E12F45120300255054 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 053518E02F45120300255054 /* Logger.swift */; };
 		0549D61E2D2BEA94000C3808 /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0549D61D2D2BEA94000C3808 /* InspectorView.swift */; };
 		055395202F3F3FE90012C9BC /* ICNSIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 0553951F2F3F3FE90012C9BC /* ICNSIcon.icon */; };
 		05586F3D2BEA368300BD75E7 /* Icon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05586F3C2BEA368300BD75E7 /* Icon.swift */; };
@@ -57,6 +58,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		053518E02F45120300255054 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		0549D61D2D2BEA94000C3808 /* InspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorView.swift; sourceTree = "<group>"; };
 		0553951F2F3F3FE90012C9BC /* ICNSIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = ICNSIcon.icon; sourceTree = "<group>"; };
 		055395212F3F3FF60012C9BC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -181,6 +183,7 @@
 			children = (
 				05B6ECC62F2BDA0A005F2139 /* MenuCommands.swift */,
 				A8698A796C20D2A8FEE04447 /* FocusedValues+ICNS.swift */,
+				053518E02F45120300255054 /* Logger.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -447,6 +450,7 @@
 				058A581B2F0C440400A117B0 /* IconStore.swift in Sources */,
 				05586F3D2BEA368300BD75E7 /* Icon.swift in Sources */,
 				055B5F222F43F17B00E8F8D4 /* SearchFieldView.swift in Sources */,
+				053518E12F45120300255054 /* Logger.swift in Sources */,
 				05586F3F2BEA36E900BD75E7 /* IconView.swift in Sources */,
 				0572ED362B802E2700B9A2EB /* ContentView.swift in Sources */,
 				0599CC0E2F113BD10002A5C0 /* ProfileStore.swift in Sources */,

@@ -44,7 +44,7 @@ struct IconView: View {
         .onChange(of: icon.id) {
             updateCurrentImage()
         }
-        .onChange(of: icon.image) {
+        .onChange(of: icon.imageID) {
             updateCurrentImage()
         }
         .onChange(of: icon.name) {
@@ -85,7 +85,27 @@ struct IconView: View {
     }
     
     private func updateCurrentImage() {
-        if let data = icon.image {
+        if let id = icon.imageID {
+            // Load async to avoid blocking main thread with file IO
+            Task.detached(priority: .userInitiated) {
+                if let data = ImageStorageService.shared.loadImage(id: id),
+                   let nsImage = NSImage(data: data) {
+                    await MainActor.run {
+                        // Verify the icon hasn't changed while we were loading
+                        if self.icon.imageID == id {
+                            self.currentImage = nsImage
+                        }
+                    }
+                } else {
+                    await MainActor.run {
+                         if self.icon.imageID == id {
+                            self.currentImage = nil
+                         }
+                    }
+                }
+            }
+        } else if let data = icon.legacyImageData {
+            // Legacy data is in memory, safe to load
             self.currentImage = NSImage(data: data)
         } else {
             self.currentImage = nil

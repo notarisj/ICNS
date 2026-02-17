@@ -7,6 +7,7 @@
 
 import Foundation
 import AppKit
+import OSLog
 
 class ImageStorageService {
     static let shared = ImageStorageService()
@@ -16,7 +17,10 @@ class ImageStorageService {
     
     private init() {
         // Get the Application Support directory
-        let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        guard let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+             Logger.storage.fault("Fatal: Could not find Application Support directory")
+             fatalError("Could not find Application Support directory")
+        }
         let appDirectory = appSupportURL.appendingPathComponent(Bundle.main.bundleIdentifier ?? "com.ICNS")
         imagesDirectory = appDirectory.appendingPathComponent("Images")
         
@@ -30,7 +34,7 @@ class ImageStorageService {
             }
             createDirectoryIfNeeded()
         } catch {
-            print("Error clearing images directory: \(error)")
+            Logger.storage.error("Error clearing images directory: \(error, privacy: .public)")
         }
     }
     
@@ -39,7 +43,7 @@ class ImageStorageService {
             do {
                 try fileManager.createDirectory(at: imagesDirectory, withIntermediateDirectories: true, attributes: nil)
             } catch {
-                print("Error creating images directory: \(error)")
+                Logger.storage.error("Error creating images directory: \(error, privacy: .public)")
             }
         }
     }
@@ -52,7 +56,7 @@ class ImageStorageService {
             try data.write(to: fileURL)
             return id
         } catch {
-            print("Error saving image: \(error)")
+            Logger.storage.error("Error saving image: \(error, privacy: .public)")
             return nil
         }
     }
@@ -69,7 +73,7 @@ class ImageStorageService {
             let data = try Data(contentsOf: fileURL)
             return data
         } catch {
-            print("Error loading image for id \(id): \(error)")
+            Logger.storage.error("Error loading image for id \(id, privacy: .public): \(error, privacy: .public)")
             return nil
         }
     }
@@ -81,7 +85,7 @@ class ImageStorageService {
                 try fileManager.removeItem(at: fileURL)
             }
         } catch {
-            print("Error deleting image for id \(id): \(error)")
+            Logger.storage.error("Error deleting image for id \(id, privacy: .public): \(error, privacy: .public)")
         }
     }
     

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import OSLog
 
 class IconStore: ObservableObject {
     @Published var icons: [Icon] = [] {
@@ -87,7 +88,7 @@ class IconStore: ObservableObject {
             // CLEAR EXISTING DATA: Ensure we start fresh so we don't have orphaned files or mismatched states
             // This is critical because the old app and new app share state but manage files differently.
             imageService.clearImagesDirectory()
-            print("Migration: Cleared existing images directory to ensure clean state.")
+            Logger.migration.info("Migration: Cleared existing images directory to ensure clean state.")
             
             for index in updatedIcons.indices {
                 if let legacyData = updatedIcons[index].legacyImageData {
@@ -95,7 +96,7 @@ class IconStore: ObservableObject {
                     // This runs on background thread, writing files synchronously
                     updatedIcons[index].image = legacyData
                     changesMade = true
-                    print("Migrated icon: \(updatedIcons[index].name)")
+                    Logger.migration.info("Migrated icon: \(updatedIcons[index].name, privacy: .public)")
                 }
             }
             
@@ -125,7 +126,7 @@ class IconStore: ObservableObject {
         
         // Done
         migrationStatus = .idle
-        print("Migration: Skipped by user. Store and image cache reset.")
+        Logger.migration.info("Migration: Skipped by user. Store and image cache reset.")
     }
     
     // MARK: - Persistence
@@ -136,7 +137,7 @@ class IconStore: ObservableObject {
                 let savedIcons = try JSONDecoder().decode([Icon].self, from: savedIconsData)
                 self.icons = savedIcons
             } catch {
-                print("Error decoding icons: \(error)")
+                Logger.data.error("Error decoding icons: \(error, privacy: .public)")
             }
         }
     }
@@ -146,7 +147,7 @@ class IconStore: ObservableObject {
             let iconsData = try JSONEncoder().encode(icons)
             UserDefaults.standard.set(iconsData, forKey: "icons")
         } catch {
-            print("Error encoding icons: \(error)")
+            Logger.data.error("Error encoding icons: \(error, privacy: .public)")
         }
     }
     
@@ -156,7 +157,7 @@ class IconStore: ObservableObject {
                 let savedCategories = try JSONDecoder().decode([Category].self, from: savedCategoriesData)
                 self.categories = savedCategories
             } catch {
-                print("Error decoding categories: \(error)")
+                Logger.data.error("Error decoding categories: \(error, privacy: .public)")
             }
         }
     }
@@ -166,7 +167,7 @@ class IconStore: ObservableObject {
             let categoriesData = try JSONEncoder().encode(categories)
             UserDefaults.standard.set(categoriesData, forKey: "categories")
         } catch {
-            print("Error encoding categories: \(error)")
+            Logger.data.error("Error encoding categories: \(error, privacy: .public)")
         }
     }
     
