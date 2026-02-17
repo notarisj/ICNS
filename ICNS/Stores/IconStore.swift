@@ -37,7 +37,67 @@ class IconStore: ObservableObject {
         loadIcons()
         loadCategories()
         ensureDefaultCategory()
-        migrateIcons() // Migrate legacy images to disk
+        checkMigrationRequirements()
+    }
+    
+    // MARK: - Migration
+    
+    enum MigrationStatus {
+        case idle
+        case needed
+        case migrating
+        case completed
+    }
+    
+    @Published var migrationStatus: MigrationStatus = .idle
+    
+    private func checkMigrationRequirements() {
+        if icons.isEmpty {
+            migrationStatus = .idle
+            return
+        }
+        
+        // Check if any icon still has legacy data but no imageID (or just has legacy data)
+        // logic in Icon.swift says legacyImageData is cleared when image is set.
+        // So presence of legacyImageData means migration is needed.
+        let hasLegacy = icons.contains { $0.legacyImageData != nil }
+        
+        if hasLegacy {
+            migrationStatus = .needed
+        } else {
+            migrationStatus = .idle
+        }
+    }
+    
+    func performMigration() {
+        guard migrationStatus == .needed else { return }
+        
+        migrationStatus = .migrating
+        
+        Task.detached(priority: .userInitiated) {
+            // Get a copy of icons on MainActor
+            let iconsToMigrate = await MainActor.run { return self.icons }
+            var updatedIcons = iconsToMigrate
+            var changesMade = false
+            
+            for index in updatedIcons.indices {
+                if let legacyData = updatedIcons[index].legacyImageData {
+                    // Trigger the setter to save to disk and clear legacy
+                    // This runs on background thread, writing files synchronously
+                    updatedIcons[index].image = legacyData
+                    changesMade = true
+                    print("Migrated icon: \(updatedIcons[index].name)")
+                }
+            }
+            
+            await MainActor.run {
+                if changesMade {
+                    self.icons = updatedIcons
+                    self.saveIcons() // Save the updated structure
+                }
+                self.migrationStatus = .completed
+            }
+        }
     }
     
     // MARK: - Persistence
@@ -59,24 +119,6 @@ class IconStore: ObservableObject {
             UserDefaults.standard.set(iconsData, forKey: "icons")
         } catch {
             print("Error encoding icons: \(error)")
-        }
-    }
-    
-    private func migrateIcons() {
-        var migrationNeeded = false
-        
-        for index in icons.indices {
-            if let legacyData = icons[index].legacyImageData {
-                // Trigger the setter to save to disk and clear legacy
-                let dataToSave = legacyData
-                icons[index].image = dataToSave 
-                migrationNeeded = true
-                print("Migrated icon: \(icons[index].name)")
-            }
-        }
-        
-        if migrationNeeded {
-            saveIcons() // Save the updated structure (ids instead of data)
         }
     }
     

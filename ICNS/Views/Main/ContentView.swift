@@ -14,6 +14,8 @@ struct ContentView: View {
     
     @StateObject private var viewModel = ContentViewModel()
     
+    @State private var showMigrationSuccessAlert = false
+
     var body: some View {
         NavigationSplitView {
             // LEFT SIDEBAR - Category-based navigation
@@ -76,6 +78,46 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .newCategory)) { _ in
             viewModel.editingCategory = nil
             viewModel.showCategoryEditor = true
+        }
+        // MARK: - Migration Alerts
+        .alert("Database Update Required", isPresented: Binding(
+            get: { store.migrationStatus == .needed },
+            set: { _ in }
+        )) {
+            Button("Upgrade") {
+                store.performMigration()
+            }
+            Button("Quit", role: .destructive) {
+                NSApplication.shared.terminate(nil)
+            }
+        } message: {
+            Text("The application needs to upgrade your icon library to the new format. This may take a few moments.")
+        }
+        .sheet(isPresented: Binding(
+            get: { store.migrationStatus == .migrating },
+            set: { _ in }
+        )) {
+            VStack(spacing: 20) {
+                ProgressView()
+                    .scaleEffect(1.5)
+                Text("Upgrading Library...")
+                    .font(.headline)
+                Text("Please wait while we update your database.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(40)
+            .interactiveDismissDisabled()
+        }
+        .onChange(of: store.migrationStatus) { oldValue, newValue in
+            if newValue == .completed {
+                showMigrationSuccessAlert = true
+            }
+        }
+        .alert("Update Complete", isPresented: $showMigrationSuccessAlert) {
+            Button("OK") {
+                store.migrationStatus = .idle
+            }
         }
     }
     
