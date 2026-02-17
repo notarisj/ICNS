@@ -17,7 +17,7 @@ struct CategorySidebarView: View {
     @State private var categoryToDelete: Category? = nil
     @State private var isUncategorizedExpanded = true
     @State private var searchText = ""
-    @State private var isSearchPresented = false
+
     
     // Icon Context Menu States
     @State private var iconToDelete: Icon? = nil
@@ -61,16 +61,9 @@ struct CategorySidebarView: View {
                trashRow
             }
         }
-        .searchable(text: $searchText, isPresented: $isSearchPresented, placement: .sidebar, prompt: "Search")
+        .searchable(text: $searchText, placement: .sidebar, prompt: "Search")
         .onChange(of: searchText) { _, newValue in
             store.updateSearchText(newValue)
-        }
-        .background {
-            Button("Find") {
-                isSearchPresented = true
-            }
-            .keyboardShortcut("f", modifiers: .command)
-            .opacity(0)
         }
         .scrollContentBackground(.hidden)
         .sheet(isPresented: $showCategoryEditor) {

@@ -12,6 +12,7 @@
 		05586F3D2BEA368300BD75E7 /* Icon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05586F3C2BEA368300BD75E7 /* Icon.swift */; };
 		05586F3F2BEA36E900BD75E7 /* IconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05586F3E2BEA36E900BD75E7 /* IconView.swift */; };
 		05586F412BEA377300BD75E7 /* NSImage+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05586F402BEA377300BD75E7 /* NSImage+Extensions.swift */; };
+		055B5F222F43F17B00E8F8D4 /* SearchFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 055B5F212F43F17B00E8F8D4 /* SearchFieldView.swift */; };
 		0572ED342B802E2700B9A2EB /* ICNSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0572ED332B802E2700B9A2EB /* ICNSApp.swift */; };
 		0572ED362B802E2700B9A2EB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0572ED352B802E2700B9A2EB /* ContentView.swift */; };
 		0572ED382B802E2900B9A2EB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0572ED372B802E2900B9A2EB /* Assets.xcassets */; };
@@ -27,6 +28,7 @@
 		0599CC172F113BF60002A5C0 /* ExportProfilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0599CC102F113BF60002A5C0 /* ExportProfilesView.swift */; };
 		05B6ECC32F2BAC6F005F2139 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05B6ECC22F2BAC6B005F2139 /* WelcomeView.swift */; };
 		05B6ECC72F2BDA0E005F2139 /* MenuCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05B6ECC62F2BDA0A005F2139 /* MenuCommands.swift */; };
+		55F2802E7CC9EDBFC85D9FBD /* FocusedValues+ICNS.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8698A796C20D2A8FEE04447 /* FocusedValues+ICNS.swift */; };
 		AA0000012F200000000000A1 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000002F200000000000A0 /* Category.swift */; };
 		AA0000032F200000000000A3 /* CategoryColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000022F200000000000A2 /* CategoryColor.swift */; };
 		AA0000052F200000000000A5 /* CategorySidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000042F200000000000A4 /* CategorySidebarView.swift */; };
@@ -60,6 +62,7 @@
 		05586F3C2BEA368300BD75E7 /* Icon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Icon.swift; sourceTree = "<group>"; };
 		05586F3E2BEA36E900BD75E7 /* IconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconView.swift; sourceTree = "<group>"; };
 		05586F402BEA377300BD75E7 /* NSImage+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSImage+Extensions.swift"; sourceTree = "<group>"; };
+		055B5F212F43F17B00E8F8D4 /* SearchFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFieldView.swift; sourceTree = "<group>"; };
 		0572ED302B802E2700B9A2EB /* ICNS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ICNS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0572ED332B802E2700B9A2EB /* ICNSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICNSApp.swift; sourceTree = "<group>"; };
 		0572ED352B802E2700B9A2EB /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -79,6 +82,7 @@
 		0599CC122F113BF60002A5C0 /* ProfilePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePicker.swift; sourceTree = "<group>"; };
 		05B6ECC22F2BAC6B005F2139 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		05B6ECC62F2BDA0A005F2139 /* MenuCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuCommands.swift; sourceTree = "<group>"; };
+		A8698A796C20D2A8FEE04447 /* FocusedValues+ICNS.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "FocusedValues+ICNS.swift"; sourceTree = "<group>"; };
 		AA0000002F200000000000A0 /* Category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Category.swift; sourceTree = "<group>"; };
 		AA0000022F200000000000A2 /* CategoryColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryColor.swift; sourceTree = "<group>"; };
 		AA0000042F200000000000A4 /* CategorySidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySidebarView.swift; sourceTree = "<group>"; };
@@ -160,6 +164,7 @@
 				05586F402BEA377300BD75E7 /* NSImage+Extensions.swift */,
 				0549D61D2D2BEA94000C3808 /* InspectorView.swift */,
 				AA0000002F200000000000A0 /* Category.swift */,
+				055B5F212F43F17B00E8F8D4 /* SearchFieldView.swift */,
 				AA0000022F200000000000A2 /* CategoryColor.swift */,
 				AA0000042F200000000000A4 /* CategorySidebarView.swift */,
 				AA0000062F200000000000A6 /* CategoryEditorSheet.swift */,
@@ -167,6 +172,7 @@
 				AA00000A2F200000000000AA /* ColorPickerView.swift */,
 				AA00000C2F200000000000AC /* IconGridView.swift */,
 				0553951F2F3F3FE90012C9BC /* ICNSIcon.icon */,
+				A8698A796C20D2A8FEE04447 /* FocusedValues+ICNS.swift */,
 			);
 			path = ICNS;
 			sourceTree = "<group>";
@@ -333,6 +339,7 @@
 				0549D61E2D2BEA94000C3808 /* InspectorView.swift in Sources */,
 				058A581B2F0C440400A117B0 /* IconStore.swift in Sources */,
 				05586F3D2BEA368300BD75E7 /* Icon.swift in Sources */,
+				055B5F222F43F17B00E8F8D4 /* SearchFieldView.swift in Sources */,
 				05586F3F2BEA36E900BD75E7 /* IconView.swift in Sources */,
 				0572ED362B802E2700B9A2EB /* ContentView.swift in Sources */,
 				0599CC0E2F113BD10002A5C0 /* ProfileStore.swift in Sources */,
@@ -351,6 +358,7 @@
 				AA0000092F200000000000A9 /* SFSymbolPickerView.swift in Sources */,
 				AA00000B2F200000000000AB /* ColorPickerView.swift in Sources */,
 				AA00000D2F200000000000AD /* IconGridView.swift in Sources */,
+				55F2802E7CC9EDBFC85D9FBD /* FocusedValues+ICNS.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

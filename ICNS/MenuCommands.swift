@@ -77,17 +77,22 @@ struct MenuCommands: Commands {
     @FocusedValue(\.resetViewAction) var resetView
     @FocusedValue(\.renameItemAction) var renameItem
     @FocusedValue(\.deleteItemAction) var deleteItem
+    @FocusedValue(\.searchFocus) var searchFocus
     
     var body: some Commands {
         // Replace "New" item
         CommandGroup(replacing: .newItem) {
-            Button("New Icon Set") {
+            Button {
                 NotificationCenter.default.post(name: .newIconSet, object: nil)
+            } label: {
+                Label("New Icon Set", systemImage: "app.dashed")
             }
             .keyboardShortcut("n", modifiers: .command)
             
-            Button("New Category") {
+            Button {
                 NotificationCenter.default.post(name: .newCategory, object: nil)
+            } label: {
+                Label("New Category", systemImage: "folder.badge.plus")
             }
             .keyboardShortcut("n", modifiers: [.command, .shift])
         }
@@ -99,25 +104,39 @@ struct MenuCommands: Commands {
         CommandGroup(after: .pasteboard) {
             Divider()
             
-            Button("Edit Category") {
+            Button {
                 editCategory?()
+            } label: {
+                Label("Edit Category", systemImage: "pencil")
             }
             .keyboardShortcut("e", modifiers: .command)
             .disabled(editCategory == nil)
             
-            Button("Rename") {
+            Button {
                 renameItem?()
+            } label: {
+                Label("Rename", systemImage: "pencil.line")
             }
             .keyboardShortcut("r", modifiers: .command)
             .disabled(renameItem == nil)
             
-            Button("Delete") {
+            Button(role: .destructive) {
                 deleteItem?()
+            } label: {
+                Label("Delete", systemImage: "trash")
             }
             .keyboardShortcut(.delete, modifiers: .command)
             .disabled(deleteItem == nil)
+            
+            Divider()
+            
+            Button {
+                searchFocus?.wrappedValue = true
+            } label: {
+                Label("Find", systemImage: "magnifyingglass")
+            }
+            .keyboardShortcut("f", modifiers: .command)
+            .disabled(searchFocus == nil)
         }
-        
-
-    }
+}
 }

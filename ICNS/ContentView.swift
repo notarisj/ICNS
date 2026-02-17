@@ -31,6 +31,10 @@ struct ContentView: View {
     @State private var showAlert = false
     @State private var alertMessage = ""
     @State private var alertTitle = "Success"
+    
+    // Toolbar Search State (for filtering grids only, not sidebar)
+    @State private var toolbarSearchText = ""
+    @State private var isSearching = false
 
     var body: some View {
         NavigationSplitView {
@@ -50,11 +54,21 @@ struct ContentView: View {
 
         } detail: {
             detailContent
+                .onTapGesture {
+                    // Only collapse toolbar search if it's empty
+                    if toolbarSearchText.isEmpty {
+                        isSearching = false
+                    }
+                    // Always clear focus from both search fields
+                    NSApp.keyWindow?.makeFirstResponder(nil)
+                }
+                // .searchable removed in favor of custom toolbar item
         }
         .navigationSplitViewStyle(.balanced)
         .toolbarBackground(.hidden, for: .automatic)
-
+        .focusedSceneValue(\.searchFocus, $isSearching)
         .focusedSceneValue(\.showInspector, $showInspector)
+        // Toolbar search does NOT update store - it only filters grids locally
         .sheet(isPresented: $showAddIconSheet) {
             addIconSheet
         }
@@ -166,11 +180,20 @@ struct ContentView: View {
                     .foregroundStyle(.tertiary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                // Only collapse toolbar search if it's empty
+                if toolbarSearchText.isEmpty {
+                    isSearching = false
+                }
+                NSApp.keyWindow?.makeFirstResponder(nil)
+            }
         }
     }
     
     @ToolbarContentBuilder
     private var toolbarItems: some ToolbarContent {
+        // MARK: - Navigation Items (Left Side)
         ToolbarItemGroup(placement: .navigation) {
             if didNavigateFromGrid && selectedIconID != nil {
                 Button {
@@ -183,7 +206,7 @@ struct ContentView: View {
             
             Menu {
                 Button {
-                    newIconCategory = selectedCategoryID // Default to current category
+                    newIconCategory = selectedCategoryID
                     showAddIconSheet = true
                 } label: {
                     Label("New Icon Set", systemImage: "app.dashed")
@@ -201,40 +224,41 @@ struct ContentView: View {
             .help("Create a new icon set or category")
         }
         
+        // MARK: - Context Actions (Dynamic based on view)
         ToolbarItemGroup(placement: .primaryAction) {
-            // IconView-specific toolbar items
-            if let iconIndex = store.icons.firstIndex(where: { $0.id == selectedIconID }) {
-                let currentIcon = store.icons[iconIndex]
-                
-                if !iconsGenerated {
-                    Button {
-                        generateIcons()
-                    } label: {
-                        Label("Generate Icons", systemImage: "sparkles.rectangle.stack")
-                    }
-                    .help("Generate the icon set from your master image")
-                    .disabled(currentIcon.image == nil || currentIcon.outputDirectory == nil)
-                } else {
-                    Button {
-                        generateICNS()
-                    } label: {
-                        Label("Save ICNS", systemImage: "arrow.down.doc.fill")
-                    }
-                    .help("Convert the icon set to a .icns file")
-                }
-                
-                if currentIcon.image != nil {
-                    Button {
-                        showClearImageConfirmation = true
-                    } label: {
-                        Label("Clear Image", systemImage: "trash")
-                    }
-                    .help("Remove the current image")
+            contextSpecificItems
+        }
+        
+        // MARK: - Inspector Toggle (Right Side, Last Position)
+        ToolbarItem(placement: .primaryAction) {
+            Button {
+                showInspector.toggle()
+            } label: {
+                Label("Inspector", systemImage: "slider.horizontal.3")
+            }
+            .help("Show or hide the inspector panel")
+        }
+    }
+    
+    // MARK: - Context-Specific Toolbar Items
+    @ViewBuilder
+    private var contextSpecificItems: some View {
+        // IconGridView-specific toolbar items (Search + Trash)
+        if selectedIconID == nil {
+            // Search field - only in grid view
+            if isSearching {
+                SearchFieldView(text: $toolbarSearchText, isSearching: $isSearching)
+                    .frame(width: 200)
+            } else {
+                Button {
+                    isSearching = true
+                } label: {
+                    Image(systemName: "magnifyingglass")
                 }
             }
             
-            // IconGridView-specific toolbar items (Trash)
-            if selectedCategoryID == Category.trashID && selectedIconID == nil {
+            // Empty Trash button - only in Trash category
+            if selectedCategoryID == Category.trashID {
                 Button {
                     showEmptyTrashConfirmation = true
                 } label: {
@@ -243,14 +267,37 @@ struct ContentView: View {
                 .help("Empty Trash")
                 .disabled(store.icons.filter { $0.isTrashed }.isEmpty)
             }
+        }
+        
+        // IconView-specific toolbar items
+        if let iconIndex = store.icons.firstIndex(where: { $0.id == selectedIconID }) {
+            let currentIcon = store.icons[iconIndex]
             
-            // Inspector toggle (always visible)
-            Button {
-                showInspector.toggle()
-            } label: {
-                Label("Inspector", systemImage: "slider.horizontal.3")
+            if !iconsGenerated {
+                Button {
+                    generateIcons()
+                } label: {
+                    Label("Generate Icons", systemImage: "sparkles.rectangle.stack")
+                }
+                .help("Generate the icon set from your master image")
+                .disabled(currentIcon.image == nil || currentIcon.outputDirectory == nil)
+            } else {
+                Button {
+                    generateICNS()
+                } label: {
+                    Label("Save ICNS", systemImage: "arrow.down.doc.fill")
+                }
+                .help("Convert the icon set to a .icns file")
             }
-            .help("Show or hide the inspector panel")
+            
+            if currentIcon.image != nil {
+                Button {
+                    showClearImageConfirmation = true
+                } label: {
+                    Label("Clear Image", systemImage: "trash")
+                }
+                .help("Remove the current image")
+            }
         }
     }
     
@@ -387,17 +434,20 @@ struct ContentView: View {
     private var iconsForSelectedCategory: [Icon] {
         if let categoryID = selectedCategoryID {
             if categoryID == Category.allIconsID {
-                return store.icons.filter { !$0.isTrashed }
+                return store.icons.filter { !$0.isTrashed && (toolbarSearchText.isEmpty || $0.name.localizedCaseInsensitiveContains(toolbarSearchText)) }
             } else if categoryID == Category.uncategorizedID {
-                return store.icons.filter { $0.categoryID == nil && !$0.isTrashed }
+                return store.icons.filter { $0.categoryID == nil && !$0.isTrashed && (toolbarSearchText.isEmpty || $0.name.localizedCaseInsensitiveContains(toolbarSearchText)) }
             } else if categoryID == Category.trashID {
-                return store.icons.filter { $0.isTrashed }
+                return store.icons.filter { $0.isTrashed && (toolbarSearchText.isEmpty || $0.name.localizedCaseInsensitiveContains(toolbarSearchText)) }
             } else if let category = store.categories.first(where: { $0.id == categoryID }) {
-                return store.icons(for: category)
+                // store.icons(for:) handles basic filtering, but we need to apply search on top
+                let icons = store.icons(for: category)
+                if toolbarSearchText.isEmpty { return icons }
+                return icons.filter { $0.name.localizedCaseInsensitiveContains(toolbarSearchText) }
             }
         }
         // Default to All Icons
-        return store.icons
+        return store.icons.filter { !$0.isTrashed && (toolbarSearchText.isEmpty || $0.name.localizedCaseInsensitiveContains(toolbarSearchText)) }
     }
     
     private var categoryTitle: String {
