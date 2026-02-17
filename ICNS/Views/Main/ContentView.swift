@@ -15,6 +15,7 @@ struct ContentView: View {
     @StateObject private var viewModel = ContentViewModel()
     
     @State private var showMigrationSuccessAlert = false
+    @State private var showSkipConfirmation = false
 
     var body: some View {
         navigationContent
@@ -57,17 +58,31 @@ struct ContentView: View {
             }
             // MARK: - Migration Alerts
             .alert("Database Update Required", isPresented: Binding(
-                get: { store.migrationStatus == .needed },
+                get: { store.migrationStatus == .needed && !showSkipConfirmation },
                 set: { _ in }
             )) {
-                Button("Upgrade") {
+                Button("Migrate") {
                     store.performMigration()
+                }
+                Button("Skip", role: .cancel) {
+                    showSkipConfirmation = true
                 }
                 Button("Quit", role: .destructive) {
                     NSApplication.shared.terminate(nil)
                 }
             } message: {
-                Text("The application needs to upgrade your icon library to the new format. This may take a few moments.")
+                Text("The application needs to migrate your icon library to the new format. This may take a few moments.")
+            }
+            .alert("Skip Migration?", isPresented: $showSkipConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Skip and Reset", role: .destructive) {
+                    // Logic to skip: Set status to idle, effectively ignoring local data?
+                    // "icons from previous version will be lost and empty them to not show again"
+                    // User requested: "empty them to not show again"
+                    store.skipAndResetMigration()
+                }
+            } message: {
+                Text("Warning: Skipping migration will cause icons created in the previous version to be lost permanently. Your icon library will be reset to an empty state.")
             }
             .sheet(isPresented: Binding(
                 get: { store.migrationStatus == .migrating },

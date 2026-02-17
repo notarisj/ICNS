@@ -110,6 +110,22 @@ class IconStore: ObservableObject {
         }
     }
     
+    func skipAndResetMigration() {
+        // User chose to skip and reset
+        // Clear icons array
+        icons.removeAll()
+        // Save empty state (didSet handles it, but explicit here for clarity)
+        saveIcons()
+        
+        // Also clear filesystem images to avoid orphans
+        let imageService = ImageStorageService.shared
+        imageService.clearImagesDirectory()
+        
+        // Done
+        migrationStatus = .idle
+        print("Migration: Skipped by user. Store and image cache reset.")
+    }
+    
     // MARK: - Persistence
     
     private func loadIcons() {
