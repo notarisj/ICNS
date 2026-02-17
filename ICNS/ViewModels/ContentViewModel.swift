@@ -37,6 +37,7 @@ class ContentViewModel: ObservableObject {
     // MARK: - Search State
     @Published var toolbarSearchText = ""
     @Published var isSearching = false
+    @Published var isSidebarSearching = false
     
     // MARK: - Actions
     

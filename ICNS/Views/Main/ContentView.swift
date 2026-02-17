@@ -17,12 +17,109 @@ struct ContentView: View {
     @State private var showMigrationSuccessAlert = false
 
     var body: some View {
+        navigationContent
+            .sheet(isPresented: $viewModel.showAddIconSheet) {
+                addIconSheet
+            }
+            .sheet(isPresented: $viewModel.showCategoryEditor) {
+                CategoryEditorSheet(category: $viewModel.editingCategory) { category in
+                    viewModel.saveCategory(store: store, category: category)
+                }
+            }
+            .alert(isPresented: $viewModel.showDeleteConfirmation) {
+                Alert(
+                    title: Text("Remove Icon"),
+                    message: Text("Are you sure you want to remove this icon?"),
+                    primaryButton: .destructive(Text("Remove")) {
+                        viewModel.deleteIcon(store: store)
+                    },
+                    secondaryButton: .cancel()
+                )
+            }
+            .alert("Empty Trash", isPresented: $viewModel.showEmptyTrashConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Empty Trash", role: .destructive) {
+                    store.emptyTrash()
+                }
+            } message: {
+                Text("Are you sure you want to permanently delete these items? This action cannot be undone.")
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .newIconSet)) { _ in
+                viewModel.newIconCategory = viewModel.selectedCategoryID
+                viewModel.showAddIconSheet = true
+            }
+            .alert(isPresented: $viewModel.showAlert) {
+                Alert(title: Text(viewModel.alertTitle), message: Text(viewModel.alertMessage), dismissButton: .default(Text("OK")))
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .newCategory)) { _ in
+                viewModel.editingCategory = nil
+                viewModel.showCategoryEditor = true
+            }
+            // MARK: - Migration Alerts
+            .alert("Database Update Required", isPresented: Binding(
+                get: { store.migrationStatus == .needed },
+                set: { _ in }
+            )) {
+                Button("Upgrade") {
+                    store.performMigration()
+                }
+                Button("Quit", role: .destructive) {
+                    NSApplication.shared.terminate(nil)
+                }
+            } message: {
+                Text("The application needs to upgrade your icon library to the new format. This may take a few moments.")
+            }
+            .sheet(isPresented: Binding(
+                get: { store.migrationStatus == .migrating },
+                set: { _ in }
+            )) {
+                VStack(spacing: 20) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                    Text("Upgrading Library...")
+                        .font(.headline)
+                    Text("Please wait while we update your database.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(40)
+                .interactiveDismissDisabled()
+            }
+            .onChange(of: store.migrationStatus) { oldValue, newValue in
+                if newValue == .completed {
+                    showMigrationSuccessAlert = true
+                }
+            }
+            .alert("Update Complete", isPresented: $showMigrationSuccessAlert) {
+                Button("OK") {
+                    store.migrationStatus = .idle
+                }
+            }
+            // Custom Command+F Handling
+            .background(
+                Button("Find") {
+                    if viewModel.selectedIconID != nil {
+                        // In Icon View: Focus Sidebar Search
+                        viewModel.isSidebarSearching = true
+                    } else {
+                        // In Grid View: Focus Toolbar Search
+                        viewModel.isSearching = true
+                    }
+                }
+                .keyboardShortcut("f", modifiers: .command)
+                .opacity(0)
+            )
+    }
+    
+    @ViewBuilder
+    private var navigationContent: some View {
         NavigationSplitView {
             // LEFT SIDEBAR - Category-based navigation
             CategorySidebarView(
                 selectedIconID: $viewModel.selectedIconID,
                 selectedCategoryID: $viewModel.selectedCategoryID,
-                didNavigateFromGrid: $viewModel.didNavigateFromGrid
+                didNavigateFromGrid: $viewModel.didNavigateFromGrid,
+                isSidebarSearching: $viewModel.isSidebarSearching
             )
             .navigationSplitViewColumnWidth(min: 200, ideal: 250, max: 350)
             .navigationTitle("Icons")
@@ -42,83 +139,6 @@ struct ContentView: View {
         .toolbarBackground(.hidden, for: .automatic)
         .focusedSceneValue(\.searchFocus, $viewModel.isSearching)
         .focusedSceneValue(\.showInspector, $viewModel.showInspector)
-        .sheet(isPresented: $viewModel.showAddIconSheet) {
-            addIconSheet
-        }
-        .sheet(isPresented: $viewModel.showCategoryEditor) {
-            CategoryEditorSheet(category: $viewModel.editingCategory) { category in
-                viewModel.saveCategory(store: store, category: category)
-            }
-        }
-        .alert(isPresented: $viewModel.showDeleteConfirmation) {
-            Alert(
-                title: Text("Remove Icon"),
-                message: Text("Are you sure you want to remove this icon?"),
-                primaryButton: .destructive(Text("Remove")) {
-                    viewModel.deleteIcon(store: store)
-                },
-                secondaryButton: .cancel()
-            )
-        }
-        .alert("Empty Trash", isPresented: $viewModel.showEmptyTrashConfirmation) {
-            Button("Cancel", role: .cancel) { }
-            Button("Empty Trash", role: .destructive) {
-                store.emptyTrash()
-            }
-        } message: {
-            Text("Are you sure you want to permanently delete these items? This action cannot be undone.")
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .newIconSet)) { _ in
-            viewModel.newIconCategory = viewModel.selectedCategoryID
-            viewModel.showAddIconSheet = true
-        }
-        .alert(isPresented: $viewModel.showAlert) {
-            Alert(title: Text(viewModel.alertTitle), message: Text(viewModel.alertMessage), dismissButton: .default(Text("OK")))
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .newCategory)) { _ in
-            viewModel.editingCategory = nil
-            viewModel.showCategoryEditor = true
-        }
-        // MARK: - Migration Alerts
-        .alert("Database Update Required", isPresented: Binding(
-            get: { store.migrationStatus == .needed },
-            set: { _ in }
-        )) {
-            Button("Upgrade") {
-                store.performMigration()
-            }
-            Button("Quit", role: .destructive) {
-                NSApplication.shared.terminate(nil)
-            }
-        } message: {
-            Text("The application needs to upgrade your icon library to the new format. This may take a few moments.")
-        }
-        .sheet(isPresented: Binding(
-            get: { store.migrationStatus == .migrating },
-            set: { _ in }
-        )) {
-            VStack(spacing: 20) {
-                ProgressView()
-                    .scaleEffect(1.5)
-                Text("Upgrading Library...")
-                    .font(.headline)
-                Text("Please wait while we update your database.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(40)
-            .interactiveDismissDisabled()
-        }
-        .onChange(of: store.migrationStatus) { oldValue, newValue in
-            if newValue == .completed {
-                showMigrationSuccessAlert = true
-            }
-        }
-        .alert("Update Complete", isPresented: $showMigrationSuccessAlert) {
-            Button("OK") {
-                store.migrationStatus = .idle
-            }
-        }
     }
     
     // MARK: - Helper Views

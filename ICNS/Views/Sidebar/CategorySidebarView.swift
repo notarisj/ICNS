@@ -12,6 +12,7 @@ struct CategorySidebarView: View {
     @Binding var selectedIconID: Icon.ID?
     @Binding var selectedCategoryID: UUID?
     @Binding var didNavigateFromGrid: Bool
+    @Binding var isSidebarSearching: Bool
     @State private var showCategoryEditor = false
     @State private var editingCategory: Category? = nil
     @State private var showDeleteConfirmation = false
@@ -62,7 +63,7 @@ struct CategorySidebarView: View {
                trashRow
             }
         }
-        .searchable(text: $searchText, placement: .sidebar, prompt: "Search")
+        .searchable(text: $searchText, isPresented: $isSidebarSearching, placement: .sidebar, prompt: "Search")
         .onChange(of: searchText) { _, newValue in
             store.updateSearchText(newValue)
         }
@@ -628,7 +629,8 @@ struct CategoryDropDelegate: DropDelegate {
     CategorySidebarView(
         selectedIconID: .constant(nil),
         selectedCategoryID: .constant(nil),
-        didNavigateFromGrid: .constant(false)
+        didNavigateFromGrid: .constant(false),
+        isSidebarSearching: .constant(false)
     )
     .environmentObject(IconStore())
     .frame(width: 250)
