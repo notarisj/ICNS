@@ -23,6 +23,17 @@ class ImageStorageService {
         createDirectoryIfNeeded()
     }
     
+    func clearImagesDirectory() {
+        do {
+            if fileManager.fileExists(atPath: imagesDirectory.path) {
+                try fileManager.removeItem(at: imagesDirectory)
+            }
+            createDirectoryIfNeeded()
+        } catch {
+            print("Error clearing images directory: \(error)")
+        }
+    }
+    
     private func createDirectoryIfNeeded() {
         if !fileManager.fileExists(atPath: imagesDirectory.path) {
             do {

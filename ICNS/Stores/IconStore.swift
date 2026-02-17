@@ -79,6 +79,16 @@ class IconStore: ObservableObject {
             let iconsToMigrate = await MainActor.run { return self.icons }
             var updatedIcons = iconsToMigrate
             var changesMade = false
+            var successCount = 0
+            
+            // Create directory explicitly just in case
+            // Accessing ImageStorageService here ensures the singleton is init'd and folder created
+            let imageService = ImageStorageService.shared
+            
+            // CLEAR EXISTING DATA: Ensure we start fresh so we don't have orphaned files or mismatched states
+            // This is critical because the old app and new app share state but manage files differently.
+            imageService.clearImagesDirectory()
+            print("Migration: Cleared existing images directory to ensure clean state.")
             
             for index in updatedIcons.indices {
                 if let legacyData = updatedIcons[index].legacyImageData {
