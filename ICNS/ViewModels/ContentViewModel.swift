@@ -9,7 +9,7 @@ class ContentViewModel: ObservableObject {
         didSet {
             // When navigating directly via selection, ensure we track where we came from if needed
             // Logic moved from ContentView binding
-            if selectedIconID != nil { didNavigateFromGrid = false }
+            if selectedIconID == nil { didNavigateFromGrid = false }
         }
     }
     @Published var selectedCategoryID: UUID? = Category.allIconsID

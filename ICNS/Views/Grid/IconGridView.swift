@@ -13,6 +13,7 @@ struct IconGridView: View {
     let categoryName: String?
     @Binding var selectedIconID: Icon.ID?
     @Binding var showInspector: Bool
+    @Binding var didNavigateFromGrid: Bool
     @State private var showEmptyTrashConfirmation = false
     @State private var showRestoreIconConfirmation = false
     @State private var iconToRestore: Icon? = nil
@@ -60,6 +61,7 @@ struct IconGridView: View {
                                         selectedIconID = nil
                                     }
                                 } else {
+                                    didNavigateFromGrid = true
                                     selectedIconID = icon.id
                                 }
                             }
@@ -168,5 +170,5 @@ struct IconGridItem: View {
 }
 
 #Preview {
-    IconGridView(icons: [], categoryName: "All Icons", selectedIconID: .constant(nil), showInspector: .constant(true))
+    IconGridView(icons: [], categoryName: "All Icons", selectedIconID: .constant(nil), showInspector: .constant(true), didNavigateFromGrid: .constant(false))
 }

@@ -19,7 +19,8 @@ struct ContentView: View {
             // LEFT SIDEBAR - Category-based navigation
             CategorySidebarView(
                 selectedIconID: $viewModel.selectedIconID,
-                selectedCategoryID: $viewModel.selectedCategoryID
+                selectedCategoryID: $viewModel.selectedCategoryID,
+                didNavigateFromGrid: $viewModel.didNavigateFromGrid
             )
             .navigationSplitViewColumnWidth(min: 200, ideal: 250, max: 350)
             .navigationTitle("Icons")
@@ -100,7 +101,8 @@ struct ContentView: View {
                     icons: viewModel.iconsForSelectedCategory(store: store),
                     categoryName: viewModel.categoryTitle(store: store),
                     selectedIconID: $viewModel.selectedIconID,
-                    showInspector: $viewModel.showInspector
+                    showInspector: $viewModel.showInspector,
+                    didNavigateFromGrid: $viewModel.didNavigateFromGrid
                 )
                     .navigationTitle(viewModel.categoryTitle(store: store))
             } else {

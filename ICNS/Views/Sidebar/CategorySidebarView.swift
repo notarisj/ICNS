@@ -11,6 +11,7 @@ struct CategorySidebarView: View {
     @EnvironmentObject var store: IconStore
     @Binding var selectedIconID: Icon.ID?
     @Binding var selectedCategoryID: UUID?
+    @Binding var didNavigateFromGrid: Bool
     @State private var showCategoryEditor = false
     @State private var editingCategory: Category? = nil
     @State private var showDeleteConfirmation = false
@@ -416,13 +417,15 @@ struct CategorySidebarView: View {
                 DispatchQueue.main.async {
                     if let uuid = newValue {
                         if store.icons.contains(where: { $0.id == uuid }) {
-                            selectedIconID = uuid
+                             didNavigateFromGrid = false
+                             selectedIconID = uuid
                         } else {
                             selectedIconID = nil
                             selectedCategoryID = uuid
                         }
                     } else {
                         selectedIconID = nil
+                        didNavigateFromGrid = false
                         selectedCategoryID = nil
                     }
                 }
@@ -624,7 +627,8 @@ struct CategoryDropDelegate: DropDelegate {
  #Preview {
     CategorySidebarView(
         selectedIconID: .constant(nil),
-        selectedCategoryID: .constant(nil)
+        selectedCategoryID: .constant(nil),
+        didNavigateFromGrid: .constant(false)
     )
     .environmentObject(IconStore())
     .frame(width: 250)
